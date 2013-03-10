@@ -67,6 +67,7 @@ Key points:
     * Compiler will warn you if any of the pattern cases, that is, events are missing. Try commenting out any of the pattern matching cases to see the effect. 
     * It is beneficial to set model as the last parameter in an individual event handler to leverage function partial application and let `EventHandler` implementation be a compiler-checked map. 
 * I made `Substract` event look different to show that extra state can be attached to Discriminated Union case which is an advantage over plain `Enums`. This is useful if some visual state cannot be bound to a model, though it's rare in WPF where most properties are dependency properties and thus represent eligible binding targets. 
+* With explicit IContoller<_, _> interface implementation type inference breaks down a bit therefore `model` parameter in `Add` and `Subtract` event handlers has to be type annotated. A reason is unknown to me because it seems like compiler has enough information to figure it out on its own. We'll look how the problem can be alleviate in the next chapter.
 
 ### Mvc - gluing pieces together.
 Now that all components defined we need to connect them, start event loop and coordinate event processing. Technically these responsibilities can be assigned to controller. We could create base class, put this logic there ans require all controller to inherit from this class. But it will lead to fragile subclass coupling. Better solution is to defined separate component that will play mediator/coordinator role. 
