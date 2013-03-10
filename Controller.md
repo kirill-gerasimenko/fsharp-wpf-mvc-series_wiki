@@ -84,3 +84,9 @@ type Mvc<'Events, 'Model when 'Model :> INotifyPropertyChanged>(model : 'Model, 
 ```
 A picture is worth a thousand words ...
 [[Images/Mvc2.png]]
+
+Look how loose coupled yet cohesive overall architecture:
+* Model has no dependencies
+* View depends on `'Events` type and implicitly (run-time through data binding) on `'Model`. We'll make second one explicit in [the next chapter](Data-Binding)
+* Most important, Controller takes dependency only on `'Events` and `'Model`. It allows presentation logic it to be easy testable (see unit tests example below). On other side pattern matching ensure we process all event types coming from View (cohesion).
+* As for Mvc type it depends on everything but it doesn't matter because it stays as is for most of applications. No need (almost) to extend or change it.  
