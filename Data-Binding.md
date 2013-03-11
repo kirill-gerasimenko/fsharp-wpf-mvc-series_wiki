@@ -223,3 +223,43 @@ Both use wrong dependency properties: `TextBlock.TextProperty` instead of `TextB
 Using `DependencyProperty` extension property as part of the implementation guarantees the right dependency property is used. Validity is always preserved. 
 
 I realize that the suggested version of Binding support is somewhat limited and can be difficult to use in real applications. But please be patient, [later](Data-Binding.-Growing-Micro-DSL) in the series we'll have another post dedicated to Binding where we'll roll out a production-quality library. 
+
+### Controller helpers
+
+Explicit implementation of `IContoller<_, _>` interface introduced in previous chapter breaks type inference  down a bit. `model` parameter in `Add` and `Subtract` event handlers had to be type annotated. A reason is unknown to me because it seems like compiler has enough information to figure it out on its own. To alleviate the problem this chapter defines `Controller<_, _>` base class. Subclass it and type annotations are not needed. 
+```ocaml
+[<AbstractClass>]
+type Controller<'Events, 'Model when 'Model :> INotifyPropertyChanged>() =
+
+    interface IController<'Events, 'Model> with
+        member this.InitModel model = this.InitModel model
+        member this.EventHandler = this.EventHandler
+
+    abstract InitModel : 'Model -> unit
+    abstract EventHandler : ('Events -> 'Model -> unit)
+
+    static member FromEventHandler callback = {
+        new IController<'Events, 'Model> with
+            member this.InitModel _ = ()
+            member this.EventHandler = callback
+    } 
+...
+type SimpleController() = 
+    inherit Controller<SampleEvents, SampleModel>()
+
+    override this.InitModel model = 
+        ...
+
+    override this.EventHandler = function
+        | Calculate -> this.Calculate
+        | Clear -> this.InitModel
+
+    member this.Calculate model = 
+        ...
+```
+There is downside - it makes user-defined more tightly couple to base class. 
+To sum up, it gives a choice to define controller in three different ways:
+
+1. Define event handler function. Create controller instance by calling static `Controller.FromEventHandler` factory method. 
+2. Just implement `IController<'Events, 'Model>` (be prepared to add some type annotations)
+3. Inherit from `Controller<_, _>` and accept some coupling.
