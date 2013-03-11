@@ -150,7 +150,7 @@ Type signature inferred by compiler is:
 
 meaning this function is only suitable to work with int numbers. 
 
-Wouldn't it be nice to have the same function to work with other kind of numbers: floats, decimals, etc. to avoid code duplication? [language primitives](http://msdn.microsoft.com/en-us/library/ee340276.aspx F#) which are based on "Member constraints" are to the rescue. To make it even more reusable we split it into two functions: one is in `Extensions` module, and the other is in `Validation`. 
+Wouldn't it be nice to have the same function to work with other kind of numbers: floats, decimals, etc. to avoid code duplication? [F# language primitives](http://msdn.microsoft.com/en-us/library/ee340276.aspx) which are based on "Member constraints" are to the rescue. To make it even more reusable we split it into two functions: one is in `Extensions` module, and the other is in `Validation`. 
 
 ```ocaml
 open LanguagePrimitives
