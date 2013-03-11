@@ -229,7 +229,7 @@ I realize that the suggested version of Binding support is somewhat limited and 
 Explicit implementation of `IContoller<_, _>` interface introduced in previous chapter breaks type inference  down a bit. `model` parameter in `Add` and `Subtract` event handlers had to be type annotated. A reason is unknown to me because it seems like compiler has enough information to figure it out on its own. To alleviate the problem this chapter defines `Controller<_, _>` base class. Subclass it and type annotations are not needed. 
 ```ocaml
 [<AbstractClass>]
-type Controller<'Events, 'Model when 'Model :> INotifyPropertyChanged>() =
+type Controller<'Events, 'Model>() =
 
     interface IController<'Events, 'Model> with
         member this.InitModel model = this.InitModel model
