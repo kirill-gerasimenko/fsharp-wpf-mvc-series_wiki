@@ -224,7 +224,7 @@ Using `DependencyProperty` extension property as part of the implementation guar
 
 I realize that the suggested version of Binding support is somewhat limited and can be difficult to use in real applications. But please be patient, [later](Data-Binding.-Growing-Micro-DSL) in the series we'll have another post dedicated to Binding where we'll roll out a production-quality library. 
 
-### Controller helpers
+### Controller base class
 
 Explicit implementation of `IContoller<_, _>` interface introduced in previous chapter breaks type inference  down a bit. `model` parameter in `Add` and `Subtract` event handlers had to be type annotated. A reason is unknown to me because it seems like compiler has enough information to figure it out on its own. To alleviate the problem this chapter defines `Controller<_, _>` base class. Subclass it and type annotations are not needed. 
 ```ocaml
@@ -263,3 +263,19 @@ To sum up, it gives a choice to define controller in three different ways:
 1. Define event handler function. Create controller instance by calling static `Controller.FromEventHandler` factory method. 
 2. Just implement `IController<'Events, 'Model>` (be prepared to add some type annotations)
 3. Inherit from `Controller<_, _>` and accept some coupling.
+
+### Mvc.start shortcut
+
+There is new function that allows to start Mvc when `'Model` has static member `Create` factory method:
+```ocaml
+[<RequireQualifiedAccess>]
+module Mvc = 
+
+    let inline start(view, controller) = 
+        let model = (^Model : (static member Create : unit -> ^Model ) ())
+        Mvc<'Events, ^Model>(model, view, controller).Start()
+```
+Usage:
+```ocaml
+Mvc.start(view, controller) ...
+```
