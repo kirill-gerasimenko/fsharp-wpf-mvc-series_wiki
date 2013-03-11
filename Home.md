@@ -8,7 +8,7 @@ This is a small, yet powerful framework, designed for building WPF applications 
 3. [[View]]
 3. [[Controller]]
 4. [[Data Binding]]
-12. [[Data-Binding.-Growing-Micro-DSL]]
+12. [[Data-Binding. Growing Micro DSL]]
 
 ### Acknowledgements
 
