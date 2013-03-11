@@ -222,4 +222,4 @@ Both use wrong dependency properties: `TextBlock.TextProperty` instead of `TextB
 
 Using `DependencyProperty` extension property as part of the implementation guarantees the right dependency property is used. Validity is always preserved. 
 
-I realize that the suggested version of Binding support is somewhat limited and can be difficult to use in real applications. But please be patient, [later](Data-Binding-:-Growing-Micro-DSL) in the series we'll have another post dedicated to Binding where we'll roll out a production-quality library. 
+I realize that the suggested version of Binding support is somewhat limited and can be difficult to use in real applications. But please be patient, [later](Data-Binding.-Growing-Micro-DSL) in the series we'll have another post dedicated to Binding where we'll roll out a production-quality library. 
