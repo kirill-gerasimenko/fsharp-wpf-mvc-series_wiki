@@ -56,7 +56,7 @@ The implementation of `ToBindingExpr` extension method is given below:
 ```ocaml
 [<AutoOpen>]
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-module Mvc.Wpf.Binding
+module FSharp.Windows.Data
     
 open System.Reflection
 open System.Windows
@@ -93,14 +93,15 @@ The code is relatively straightforward by F# standards. I'd like to contrast it 
 ---|----|---------
 Representation | F# [Code Quotations](http://msdn.microsoft.com/en-us/library/dd233212.aspx) | Unfortunately, assignment statements are not allowed inside [Expression Trees](http://msdn.microsoft.com/en-us/library/bb397951.aspx) created from Lambda Expressions. Building them manually defeats the purpose. In comparision, F# quotations are full-blown i.e. support complete language.
 Parsing/processing | [Predefined](http://msdn.microsoft.com/en-us/library/ee370259.aspx) active patterns. | Hypothetically, if assignment statement limitation doesn't exist, to parse expression tree one should use [Visitor](http://msdn.microsoft.com/en-us/library/system.linq.expressions.expressionvisitor.aspx) - a lot of [tedious](http://msdn.microsoft.com/en-us/library/bb546136.aspx) coding.
-Extension property - readability | `PropertyInfo.DependencyProperty` | Module names same as classes - cohesion | module FSharp.Windows.Data. Using `[<CompilationRepresentation`<br>`<(CompilationRepresentationFlags.ModuleSuffix)>]` attribute | NA. There are no modules in C# but names of static classes (often used as containers for extensions) cannot clash with other class names either.
+Extension property - readability | `PropertyInfo.DependencyProperty` | NA 
+Module names same as classes - cohesion | module FSharp.Windows.Data. Using `[<CompilationRepresentation`<br/>`<(CompilationRepresentationFlags.ModuleSuffix)>]` attribute | There are no modules in C# but names of static classes (often used as containers for extensions) cannot clash with other class names either.
 
 Here is `SampleModel` we expected to see: 
 ```ocaml
 type Operations =
-    | Add
-    | Subtract
-...
+    | Add = 0
+    | Subtract = 1 
+
 [<AbstractClass>]
 type SampleModel() = 
     inherit Model()
@@ -142,11 +143,13 @@ Another stylistic improvement is to support batching for binding quotations as o
 type Operations =
     | Add
     | Subtract
-...
+
+    override this.ToString() = sprintf "%A" this
+
 [<AbstractClass>]
 type SampleModel() = 
     inherit Model()
-    
+
     abstract AvailableOperations : Operations[] with get, set
     abstract SelectedOperation : Operations with get, set
     abstract X : int with get, set
@@ -169,7 +172,7 @@ And implementation:
 
 ```ocaml
 ...
-module Mvc.Wpf.Binding
+module FSharp.Windows.Binding
 ...
 let rec (|PropertyPath|_|) = function 
     | PropertyGet( Some( Value _), sourceProperty, []) -> Some sourceProperty.Name
@@ -219,4 +222,4 @@ Both use wrong dependency properties: `TextBlock.TextProperty` instead of `TextB
 
 Using `DependencyProperty` extension property as part of the implementation guarantees the right dependency property is used. Validity is always preserved. 
 
-I realize that the suggested version of Binding support is somewhat limited and can be difficult to use in real applications. But please be patient, [BindingMicroDSL later] in the series we'll have another post dedicated to Binding where we'll roll out a production-quality library. 
+I realize that the suggested version of Binding support is somewhat limited and can be difficult to use in real applications. But please be patient, ([Binding: Growing Micro DSL]([[Binding:-Growing-Micro-DSL]])) in the series we'll have another post dedicated to Binding where we'll roll out a production-quality library. 
