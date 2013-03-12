@@ -257,6 +257,5 @@ type SimpleController ...
         },
         cancellationSource.Token
     ...
-</code> 
-
+```
 Explicit control over `CancellationTokenSource` makes all kinds of scenarios possible: selective, grouped, linked cancellations. 
