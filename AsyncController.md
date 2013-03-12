@@ -198,7 +198,7 @@ I assume the reader is familiar with a way cancellation is handled in F# async w
         | CancelAsync -> Sync(ignore >> Async.CancelDefaultToken)
         ...
 ```
-Often an application needs some compensation function to run as a reaction to async computation cancellation. It can be done either through [Async.TryCancelled](http://msdn.microsoft.com/en-us/library/ee370399.aspx)(see FahrenheitToCelsius case above) combinator or inside workflow by calling [ Async.OnCancel](http://msdn.microsoft.com/en-us/library/ee340460.aspx method)(see CelsiusToFahrenheit handler below). In our specific example we set status message to "... Request cancelled." 
+Often an application needs some compensation function to run as a reaction to async computation cancellation. It can be done either through [Async.TryCancelled](http://msdn.microsoft.com/en-us/library/ee370399.aspx) (see FahrenheitToCelsius case above) combinator or inside workflow by calling [ Async.OnCancel method](http://msdn.microsoft.com/en-us/library/ee340460.aspx) (see CelsiusToFahrenheit handler below). In our specific example we set status message to "... Request cancelled." 
 ```ocaml
 ...
     member this.CelsiusToFahrenheit model = 
