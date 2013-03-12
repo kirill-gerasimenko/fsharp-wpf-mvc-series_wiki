@@ -179,3 +179,84 @@ app.DispatcherUnhandledException.Add <| fun args ->
 ...
 ```
 In this example override is local object expression, but `Mvc<_, _>` subtype can be defined as well. Using this subtype through application will make it effectively global strategy. 
+
+To test exception handling use "Kaboom !" button or disconnect from network before call to temperature converter service.
+
+### Cancellation
+I assume the reader is familiar with a way cancellation is handled in F# async workflows. For more details look at [ Chris's book](http://www.amazon.com/Programming-comprehensive-writing-complex-problems/dp/0596153643/) p.271 and PFX team blog [ post](http://blogs.msdn.com/b/pfxteam/archive/2009/05/22/9635790.aspx). In the current design we start all async workflows without explicitly specifying `CancellationToken` in `Async.StartWithContinuations` call. This means that shared global `CancellationToken` will be used. The only way to cancel it is to call `Async.CancelDefaultToken` method which cancels all running asynchronous workflows (ones that share the same token). "Cancel Async" button initiates the cancellation. 
+```ocaml
+    override this.Dispatcher = function
+        ...
+        | CelsiusToFahrenheit -> Async this.CelsiusToFahrenheit
+        | FahrenheitToCelsius -> Async(fun model -> 
+            let context = SynchronizationContext.Current
+            Async.TryCancelled(
+                computation = this.FahrenheitToCelsius model,
+                compensation = fun error -> 
+                    context.Post((fun _ -> model.TempConverterHeader <- "Async TempConverter. Request cancelled."), null) 
+            ))
+        | CancelAsync -> Sync(ignore >> Async.CancelDefaultToken)
+        ...
+```
+Often an application needs some compensation function to run as a reaction to async computation cancellation. It can be done either through [Async.TryCancelled](http://msdn.microsoft.com/en-us/library/ee370399.aspx)(see FahrenheitToCelsius case above) combinator or inside workflow by calling [ Async.OnCancel](http://msdn.microsoft.com/en-us/library/ee340460.aspx method)(see CelsiusToFahrenheit handler below). In our specific example we set status message to "... Request cancelled." 
+```ocaml
+...
+    member this.CelsiusToFahrenheit model = 
+        async {
+            let context = SynchronizationContext.Current
+            use! cancelHandler = Async.OnCancel(fun() -> 
+                context.Post((fun _ -> model.TempConverterHeader <- "Async TempConverter. Request cancelled."), null)) 
+            model.TempConverterHeader <- "Async TempConverter. Waiting for response ..."            
+            do! Async.Sleep(model.Delay * 1000)
+            let! fahrenheit = service.AsyncCelsiusToFahrenheit model.Celsius
+            do! Async.SwitchToContext context
+            model.TempConverterHeader <- "Async TempConverter. Response received."            
+            model.Fahrenheit <- fahrenheit
+        }
+...
+```
+Because compensation function makes changes to Model we need to ensure execution in the proper context. Simulated delay comes before web service call in the workflow so that user is  able to see the clear effect of cancellation - network call simply does not take place. 
+
+_Ideas presented below are not fully-developed mostly because I didn't have a chance using them in a real-world application. For the same reason they did not make it into the framework. Still, they may have value for a curious reader. Feel free to try them out._
+
+Cancelling the most recent set of asynchronous computations is ideal most of the times, but can cause issues if your application wants to cancel async workflows on individual basis. To be able to cancel an arbitrary asynchronous workflow you’ll need to create and keep track of a `CancellationTokenSource` object. Along with async computation event handler returns `CancellationToken` instance of the computation it's running with. 
+```ocaml
+open System.Threading
+    
+type EventHandler<'Model> = 
+    ...
+    | Async of ('Model -> Async<unit> * CancellationToken)
+...
+type Mvc ...
+    ...
+    member this.Start model =
+        ...
+            | Async eventHandler -> 
+                let computation, ct = eventHandler model
+                Async.StartWithContinuations(
+                    computation, 
+                    continuation = ignore, 
+                    exceptionContinuation = (fun exn -> this.OnException(event, exn)),  
+                    cancellationContinuation = ignore
+                    cancellationToken = ct
+                )
+...
+
+type SimpleController ...
+    ...
+    let mutable cancellationSource : CancellationTokenSource = null
+    
+    override this.Dispatcher = function
+        ...
+        | CancelAsync -> Sync(fun _ -> if cancellationSource <> null then cancellationSource.Cancel())
+    ...
+    member this.CelsiusToFahrenheit model = 
+        cancellationSource <- new CancellationTokenSource()
+        async {
+            ...
+        },
+        cancellationSource.Token
+    ...
+</code> 
+
+Explicit control over `CancellationTokenSource` makes all kinds of scenarios possible: selective, grouped, linked cancellations. 
