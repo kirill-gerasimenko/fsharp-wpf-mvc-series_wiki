@@ -259,3 +259,53 @@ type SimpleController ...
     ...
 ```
 Explicit control over `CancellationTokenSource` makes all kinds of scenarios possible: selective, grouped, linked cancellations. 
+
+### Async model initalization
+
+Async model initialization is another speculative feature. It doesn't mean it's useless but I didn't put it through a real-life test. 
+
+A scenario where loading all data required for initialization takes significant time sounds like a real one. Necessity to reduce start-up time in exchange to gradually enabling functionality as data gets available can be quite important. Be prepared to write a complex logic dealing with a partial initialization. 
+
+A possible solution is splitting up `InitModel` into 2 pieces: the first, synchronous, loads data that are absolutely required before `View` shows up, and the second initializes data that can be loaded asynchronously. Async part is executed by `Async.StartImmediate` after the bindings are set. Speaking of bindings, sync part should set all Model properties that are loaded asynchronously to some reasonable default values. 
+
+To implement custom controller with async `InitModel` inherit from new base class `AsyncInitController<_, _>` and override `Dispatcher` and `InitModel`. If you don't like to be constraint by subtyping just create type that has two members with appropriate names (`Dispatcher` and `InitModel`) and types then use `AsyncInitController.Create` factory method.
+```ocaml
+[<AbstractClass>]
+type AsyncInitController<'Events, 'Model>() =
+    inherit Controller<'Events, 'Model>()
+
+    abstract InitModel : 'Model -> Async<unit>
+    override this.InitModel model = model |> this.InitModel |> Async.StartImmediate
+
+    static member inline Create(controller : ^Controller) = {
+        new IController<'Events, 'Model> with
+            member this.InitModel model = (^Controller : (member InitModel : 'Model -> Async<unit>) (controller, model)) |> Async.StartImmediate
+            member this.Dispatcher = (^Controller : (member Dispatcher : ('Events -> EventHandler<'Model>)) controller)
+    } 
+```
+As example of async model initialization, `SampleController` counts files in "...\ProgramFiles" folder (which is usually a lot). 
+```ocaml
+type SampleController() = 
+    inherit AsyncInitController<SampleEvents, SampleModel>()
+    ...
+    override this.InitModel(model : SampleModel) = 
+        ...
+        let folderToSearch = Environment.GetFolderPath Environment.SpecialFolder.ProgramFiles
+        model.Title <- sprintf "Files in %s: ..." folderToSearch
+
+        async {
+            try 
+                let context = SynchronizationContext.Current
+                do! Async.SwitchToThreadPool()
+                let totalFiles = Directory.GetFiles(folderToSearch, "*.*", SearchOption.AllDirectories).Length
+                do! Async.SwitchToContext context
+                model.Title <- sprintf "Files in %s: - %i" folderToSearch totalFiles
+            with e ->
+                System.Diagnostics.Debug.WriteLine e.Message
+                model.Title <- sprintf "Failed to count files in in %s." folderToSearch 
+        }
+    
+``` 
+Exceptions are still possible. It's reasonable to have `try ... with` clause inside `async { ... }` block and to handle it there. For example, unless you run this chapter application with administrative credential it fails to access "ProgramFiles" folder and report it to window title. 
+
+Cancellation doesn't makes sense in context of async `InitModel`.
