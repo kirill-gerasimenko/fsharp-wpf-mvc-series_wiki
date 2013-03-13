@@ -157,11 +157,11 @@ module Mvc =
 These Mvc extensions can be bundled together with `Model` definition and placed into a separate assembly, therefore allowing to include various model implementations. 
 
 Before we get to the implementation details of `HexConverter` MVC-triple I would like to bring the reader's attention to `View` extensions module: 
-```
+```ocaml
 [<AutoOpen>]
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module View = 
-
+    
     type IView<'Events, 'Model> with
 
         member this.OK() = this.Close true
@@ -176,7 +176,7 @@ module View =
 Methods `OK` and `Cancel` are more readable shortcuts for calling `IView.Close`. Properties `OKButton` and `CancelButton` are helpful when it's only needed to attach a closing logic to a button without event handler in `Controller`. Defined in the extension module these helpers can be used with different `IView` implementations. 
 
 While `HexConverter` MVC-triple implementation looks trivial (if not boring) I thought I would show a "cool" way to do this using module-scoped definitions, functions and objects expressions: 
-```
+```ocaml
 ...
 module HexConverter =  
 
@@ -227,7 +227,7 @@ To demonstrate non-modal windows we adopt Tomas Petricek [example](http://msdn.m
 [[Images/AsyncChildWindow-StockPricesChart.png]]
 
 Below is "Add Stock..." related code: 
-```
+```ocaml
 type SampleModel() = 
     ...
     abstract StockPrices : ObservableCollection<string * decimal> with get, set
@@ -259,11 +259,12 @@ type SimpleController() =
             result |> Option.iter (fun stockInfo ->
                 model.StockPrices.Add(stockInfo.Symbol, stockInfo.LastPrice)
             )
-        }```
+        }
+```
 What we've done is similar to the way we handled asynchronous I/O. No need to introduce new concept, but now it's not about I/O - it's about non-modal windows. It is a simple, composable and beautiful approach. And, to make things even more impressive - data retrieval from Yahoo finance web service inside `StockPriceController` is asynchronous too. 
 
 One more thing I'd like to point out: imperative control initialization. For our example we need to manually setup some `MS Chart Control` properties: 
-```
+```ocaml
 type SampleView() as this =
     inherit View<SampleEvents, SampleModel, SampleWindow>()
     
