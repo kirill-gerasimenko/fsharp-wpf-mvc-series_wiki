@@ -256,7 +256,7 @@ type Mvc ... =
 ```
 
 Several key points from the example above: 
-  * Composition result is yet another `Mvc`. Formally speaking, it satisfies a [closure property](http://en.wikipedia.org/wiki/Closure_(mathematics)) – an important composability facilitator. 
+  * Composition result is yet another `Mvc`. Formally speaking, it satisfies a [closure property](http://en.wikipedia.org/wiki/Closure_(mathematics\)) – an important composability facilitator. 
   * Right-hand side of `<+>` or `Compose` is a child MVC-triple, but instead of model instance a model selector is expected that pulls a child model out of bigger composite.
 
 Let's dig into `Mvc.Compose` implementation:
@@ -303,3 +303,29 @@ After two views are combined, the method build composite controller. First `Init
 Several F# language features were essential to make the composition feature implementation/usage sensible: [object expressions](http://msdn.microsoft.com/en-us/library/dd233237.aspx), [wildcards as type arguments](http://msdn.microsoft.com/en-us/library/dd233215.aspx) and especially [type inference](http://msdn.microsoft.com/en-us/library/dd233180.aspx). For example, just imagine how tedious it would be to provide type for resulting controller in our sample application by hand-coding: 
 
 [[Images/ControllerCompositionResult.TypeSignature.png]]
+
+### Miscellaneous
+In [[AsyncController]] chapter we have introduced a specialized `SyncController` to address common pattern in application where controller has sync event handlers only. 
+```ocaml
+[<AbstractClass>]
+type SyncController<'Events, 'Model>(view) =
+    inherit Controller<'Events, 'Model>()
+
+    abstract Dispatcher : ('Events -> 'Model -> unit)
+    override this.Dispatcher = fun e -> Sync(this.Dispatcher e)
+```
+Sub-typing is rather tight coupling and [this smells](http://notonlyoo.org/). The problem could be nicely solved by using constructions like [mixins](http://en.wikipedia.org/wiki/Mixin). Unfortunately, F# language doesn't support mixins, as  some other popular these days [languages](http://www.scala-lang.org/node/117) do. 
+
+Luckily, there is an elegant F# solution. Here is an excerpt from `CalculatorController`: 
+```ocaml
+type CalculatorController() = 
+    inherit Controller<CalculatorEvents, CalculatorModel>()
+    ...
+    override this.Dispatcher = Sync << function
+        | Calculate -> this.Calculate
+        | Clear -> this.InitModel
+        | Hex1 -> this.Hex1
+        | Hex2 -> this.Hex2
+        | YChanged text -> this.YChanged text
+```
+Notice how the choice of making Dispatcher a high-order function pays off. Would could not archive that much with a plain .NET method (F# class member).
