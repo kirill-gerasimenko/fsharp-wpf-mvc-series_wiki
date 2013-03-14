@@ -180,3 +180,126 @@ type MainView() =
 ```
 
 Nowhere `MainView` concerns itself with composition logic. We'll see later how it is actually composed with child views. There are also some new challenges (for example, support for `StringFormat` property) that our data binding doesn't know how to cope with. [upcoming chapter](Data Binding. Growing Micro DSL) will address this and many other data binding-related issues. 
+
+### Controllers
+Finally, we have arrived to the most critical piece of composition puzzle - controllers. Before we move on let's look at `MainController`: 
+```ocaml
+type MainController() = 
+    inherit Controller<MainEvents, MainModel>()
+
+    override this.InitModel model = 
+        model.ProcessName <- Process.GetCurrentProcess().ProcessName
+        model.ActiveTab <- "Calculator"
+
+        model.Calculator <- Model.Create()
+        model.TempConveter <- Model.Create()
+        model.StockPricesChart <- Model.Create()
+
+    override this.Dispatcher = function
+        | ActiveTabChanged header -> Sync <| this.ActiveTabChanged header
+
+    member this.ActiveTabChanged header model =
+        model.ActiveTab <- header
+```
+
+  * Inside `InitModel` controller has to take care of creating child models in addition to initializing its own model.
+  * Similar to `MainView`, other than the bullet point above, `MainController` is not exposed to the composition logic in any way - it only takes care of its own stuff.
+    Updating main title with current process name and active tab could be done purely through the data binding, but I wanted to demonstrate that parent controller can have its own event handling.    
+
+All child controllers (`CalculatorController`, `TempConveterController`, `StockPricesChartController`) are the result of a very straightforward decomposition. So, I won't bother showing code here, please look at the accompanying source code for more details. 
+
+Now I'm going to show how final controllers composition logic looks like. Ladies and gents, fasten your seat belts. Here we go:
+```ocaml
+[<STAThread>] 
+do
+    let view = MainView()
+
+    let mvc = 
+        Mvc(MainModel.Create(), view, MainController())
+            <+> (CalculatorController(), CalculatorView(view.Control.Calculator), fun m -> m.Calculator)
+            <+> (TempConveterController(), TempConveterView(view.Control.TempConveterControl), fun m -> m.TempConveter)
+            <+> (StockPricesChartController(), StockPricesChartView(view.Control.StockPricesChart), fun m -> m.StockPricesChart)
+
+    mvc.Start() |> ignore
+```
+
+### Implementation
+Let's go step by step through controller's composition implementation.
+
+Operator <+> is a synonym for `Mvc.Compose` method: 
+```ocaml
+type Mvc...
+    ...
+    static member (<+>) (mvc : Mvc<_, _>,  (childController, childView, childModelSelector)) = 
+        mvc.Compose(childController, childView, childModelSelector)
+```
+So, the composing logic could be written as well as : 
+```ocaml
+    ...
+    let view = MainView()
+
+    let mvc = 
+        Mvc(MainModel.Create(), view, MainController())
+            .Compose(CalculatorController(), CalculatorView(view.Control.Calculator), fun m -> m.Calculator)
+            .Compose(TempConveterController(), TempConveterView(view.Control.TempConveterControl), fun m -> m.TempConveter)
+            .Compose(StockPricesChartController(), StockPricesChartView(view.Control.StockPricesChart), fun m -> m.StockPricesChart)
+    ...
+```
+
+Method declaration:
+```ocaml
+    ...
+type Mvc ... =
+    ...
+    member this.Compose(childController : IController<'EX, 'MX>, childView : IPartialView<'EX, 'MX>, childModelSelector : _ -> 'MX) = 
+        ...
+```
+
+Several key points from the example above: 
+  * Composition result is yet another `Mvc`. Formally speaking, it satisfies a [closure property](http://en.wikipedia.org/wiki/Closure_(mathematics)) – an important composability facilitator. 
+  * Right-hand side of `<+>` or `Compose` is a child MVC-triple, but instead of model instance a model selector is expected that pulls a child model out of bigger composite.
+
+Let's dig into `Mvc.Compose` implementation:
+```ocaml
+type Mvc... = 
+     ...
+    member this.Compose(childController : IController<'EX, 'MX>, childView : IPartialView<'EX, 'MX>, childModelSelector : _ -> 'MX) = 
+        let compositeView = {
+                new IView<_, _> with
+                    member __.Subscribe observer = (Observable.unify view childView).Subscribe(observer)
+                    member __.SetBindings model =
+                        view.SetBindings model  
+                        model |> childModelSelector |> childView.SetBindings
+                    member __.Show() = view.Show()
+                    member __.ShowDialog() = view.ShowDialog()
+                    member __.Close ok = view.Close ok
+        }
+
+        let compositeController = { 
+            new IController<_, _> with
+                member __.InitModel model = 
+                    controller.InitModel model
+                    model |> childModelSelector |> childController.InitModel
+                member __.Dispatcher = function 
+                    | Choice1Of2 e -> controller.Dispatcher e
+                    | Choice2Of2 e -> 
+                        match childController.Dispatcher e with
+                        | Sync handler -> Sync(childModelSelector >> handler)  
+                        | Async handler -> Async(childModelSelector >> handler) 
+        }
+
+        Mvc(model, compositeView, compositeController)
+```
+`Mvc.Compose` makes views composition first. Composing views mostly means composing event sources. New `Observable.unify` function performs exactly this. Pay attention to the type signature - it will help you to get a better intuition into what it does exactly. 
+
+[[Images/IObservable.Unify.TypeSignature.png]]
+
+The idea is similar to events mapping we do manually to implement `EventsStreams` property on `View`. Here though it can be automated, because the mapping is unambiguous. Target DU type is [Choice<'T1,'T2>](http://msdn.microsoft.com/en-us/library/ee353439.aspx).
+
+View composition leverages `Observable.unify` method to compose event source and delegates `SetBindings` calls to parent and child views. `Show`, `ShowDialog` and `Close` are straightforward delegations to parent. Parent must be `IView`, not `IPartialView`. In WPF terms it means controls can be hosted inside Window, not vice versa. `childModelSelector` parameter has the exact same meaning as in controller's composition. 
+
+After two views are combined, the method build composite controller. First `InitModel` calls parent, then child controller. That's why we can say that parent controller is aware of composition (suppose to build composite model by creating child models and assigning them to respective properties), but does not deal with low level details of it. `Dispatch` function redirects an event to the proper controller - either parent or child. And all these goodies are statically type-proved by compiler. 
+
+Several F# language features were essential to make the composition feature implementation/usage sensible: [object expressions](http://msdn.microsoft.com/en-us/library/dd233237.aspx), [wildcards as type arguments](http://msdn.microsoft.com/en-us/library/dd233215.aspx) and especially [type inference](http://msdn.microsoft.com/en-us/library/dd233180.aspx). For example, just imagine how tedious it would be to provide type for resulting controller in our sample application by hand-coding: 
+
+[[Images/ControllerCompositionResult.TypeSignature.png]]
