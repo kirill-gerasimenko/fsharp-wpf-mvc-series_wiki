@@ -59,22 +59,22 @@ Notice that `MainModel` has both composite part and its own state (`ProcessName`
 [UserControls](http://msdn.microsoft.com/en-us/library/ms745025.aspx) is THE way to archive composition/reuse in XAML. `CalculatorControl.xaml`, `TempConveterControl.xaml` and `StockPricesChartControl.xaml` are factored-out XAML parts. XAML-composition is done through [standard](http://msdn.microsoft.com/en-us/library/system.windows.controls.usercontrol.aspx) technique (look for Example/XAML section). 
 
 CalculatorControl.xaml: 
-```ocaml
+```xml
 <UserControl x:Class="FSharp.Windows.UIElements.CalculatorControl"
         ...>
 ```
 TempConveterControl.xaml:
-```ocaml
+```xml
 <UserControl x:Class="FSharp.Windows.UIElements.TempConveterControl"
         ...>
 ``` 
 StockPricesChartControl.xaml
-```ocaml
+```xml
 <UserControl x:Class="FSharp.Windows.UIElements.StockPricesChartControl"
         ...>
 ```
 MainWindow.xaml:
-```ocaml
+```xml
 <Window x:Class="FSharp.Windows.UIElements.MainWindow"
         ...
         xmlns:local="clr-namespace:FSharp.Windows.UIElements"
