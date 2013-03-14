@@ -10,7 +10,7 @@ This is a small, yet powerful framework, designed for building WPF applications 
 4. [[Data Binding]].
 5. [[Validation]].
 6. [[AsyncController]]
-7. [[Controller.Child Windows]]
+7. [[Child Windows]]
 12. [[Data-Binding. Growing Micro DSL]].
 
 ### Acknowledgements
