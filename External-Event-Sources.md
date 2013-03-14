@@ -241,6 +241,7 @@ If application is executed inside Visual Studio and "Fail" flag is on, we'll see
 ### Application module
 
 The final solution assumes that appropriate `SynchronizationContext` has been established before `Mvc.*Start` call. Using WPF [Application](http://msdn.microsoft.com/en-us/library/system.windows.application.aspx) class is a good way to ensure this. Application module contains helpers that make it easy to bootstrap root `Mvc`: 
+
 ```ocaml
 open System.Runtime.CompilerServices
 open System.Windows
@@ -261,8 +262,10 @@ module Application =
             this.Startup.Add <| fun _ -> AttachMvc mvc
             this.Run mainWindow
 ```
+
 The first visible extension method `AttachMvc` is meant for application hosts written in C#. It is needed, for example, if you want to leverage [ClickOnce](http://msdn.microsoft.com/en-us/library/t71a733d.aspx) deployment. F# projects do not support this. Usage will be similar to something like below: 
-```C#
+
+```c#
 namespace ...
 {
     public partial class App : Application
@@ -285,6 +288,7 @@ namespace ...
 ```
 
 Application extension method Run is for F# hosted application main: 
+
 ```ocaml
 [<STAThread>] 
 [<EntryPoint>]
