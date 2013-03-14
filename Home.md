@@ -11,6 +11,7 @@ This is a small, yet powerful framework, designed for building WPF applications 
 5. [[Validation]].
 6. [[AsyncController]]
 7. [[Child Windows]]
+8. [[Reentrancy problem]]
 12. [[Data-Binding. Growing Micro DSL]].
 
 ### Acknowledgements
