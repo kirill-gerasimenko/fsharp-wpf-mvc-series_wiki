@@ -13,6 +13,7 @@ This is a small, yet powerful framework, designed for building WPF applications 
 7. [[Child Windows]]
 8. [[Reentrancy problem]]
 9. [[Composition]]
+10. [[External Event Sources]]
 12. [[Data-Binding. Growing Micro DSL]].
 
 ### Acknowledgements
