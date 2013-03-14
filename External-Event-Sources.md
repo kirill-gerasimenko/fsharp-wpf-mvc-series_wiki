@@ -277,7 +277,7 @@ namespace ...
                 var model = Model.Create<MainModel>();
                 var view = new MainView(new MainPage());
                 var controller = new MainController();
-                this.RootVisual = view.Control;
+                this.MainWindow = view.Control;
                 var mvc = new Mvc<MainPageEvents, MainModel>(model, view, controller);
                 this.AttachMvc(mvc);
             };
