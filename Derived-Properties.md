@@ -42,11 +42,10 @@ type MainController...
     member this.ActiveTabChanged header model = 
         model.ActiveTab <- header 
 ```
-
 Note that `ProcessName` value is static while `ActiveTab` gets updated by event handler. 
 
 Technically, this problem can be solved by extending Binding DSL to accept `String.Format` call with multiple parameters. This will result in following code: 
-<code language="ml">
+```ocaml
 type MainView()...
     ...
     override this.SetBindings model = 
