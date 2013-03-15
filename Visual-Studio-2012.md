@@ -271,3 +271,25 @@ It means that our `MainView` has to be composed manually in code and full design
 After all we have two views `HexConverter` and `StockPicker` that use XAML type provider. The rest stays C# generation-based.
 
 As much as I appreciate the effort of the guys working on [FSharpx](https://github.com/fsharp/fsharpx) XAML Type Provider it is not yet ready for production use. But make your own judgment, I might be wrong.
+
+# .NET 4.5
+
+## INotifyDataErrorInfo
+
+Starting 4.5 WPF supports [INotifyDataErrorInfo](http://msdn.microsoft.com/en-us/library/system.componentmodel.inotifydataerrorinfo.aspx) interface. It has been available for a while in Silverlight. Basically it makes error notification more natural. I'm not going to delve into boring implementation details. Follow the link  above to see MSDN implementation guidelines or look at source code for the chapter. It is worth nothing that semantic has changed a little: zero or many errors can be associated with single property. It is a deviation from `IDataErrorInfo` where one to one relationship exists. 
+
+`Model.SetError` method was renamed to `AddError` to better reflect semantic, as a result member constraint for Validation module changed too.
+
+## ExceptionDispatchInfo
+
+Support for re-throwing exception with original stack trace was a long awaited feature. Finally [ExceptionDispatchInfo](http://msdn.microsoft.com/en-us/library/system.runtime.exceptionservices.exceptiondispatchinfo.aspx) has arrived. Changes to `Mvc.OnException` are minimal:
+```ocaml
+...
+open System.Runtime.ExceptionServices
+...
+type Mvc ... =
+    ...
+    abstract OnException : 'Events * exn -> unit
+    default this.OnException(_, exn) = ExceptionDispatchInfo.Capture(exn).Throw() 
+    ...
+```
