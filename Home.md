@@ -9,11 +9,11 @@ This is a small, yet powerful framework, designed for building WPF applications 
 3. [[Controller]].
 4. [[Data Binding]].
 5. [[Validation]].
-6. [[AsyncController]]
-7. [[Child Windows]]
-8. [[Reentrancy problem]]
-9. [[Composition]]
-10. [[External Event Sources]]
+6. [[AsyncController]].
+7. [[Child Windows]].
+8. [[Reentrancy problem]].
+9. [[Composition]].
+10. [[External Event Sources]].
 12. [[Data-Binding. Growing Micro DSL]].
 
 ### Acknowledgements
