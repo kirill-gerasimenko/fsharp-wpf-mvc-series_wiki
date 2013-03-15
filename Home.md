@@ -16,6 +16,7 @@ This is a small, yet powerful framework, designed for building WPF applications 
 10. [[External Event Sources]].
 12. [[Data-Binding. Growing Micro DSL]].
 13. [[Derived properties]].
+14. [[F# 3.0/.NET 4.5]].
 
 ### Acknowledgements
 
