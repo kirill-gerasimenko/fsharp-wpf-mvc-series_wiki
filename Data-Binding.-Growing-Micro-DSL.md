@@ -77,20 +77,21 @@ type Expr with
 
 Moving on to problem #3. Contrary to the binding target object, the source object is never set explicitly by Binding DSL. It was a conscious architectural choice - binding property path is always relative to root (Window) data context which in our case is a model instance. Hence, right-hand side id mostly mapped to [Path property](http://msdn.microsoft.com/en-us/library/system.windows.data.binding.path.aspx) of `Binding` object. There are different language contracts that can be a part of the assignment statement and at the same time can be nicely mapped to Binding class properties. Let's look at the variations that make sense to support: 
 
-||#|| Original assignment statement quotation || Resulting Binding || Notes ||
-||1||`<@ textBox.Text <- model.StringProperty @>`||`Binding(path = "StringProperty")`||straightforward mapping||
-||2||`<@ textBox.Text <- string model.NonStringProperty @>`||`Binding(path = "NonStringProperty")`||straightforward mapping, except that string "shim" happily discards type <br>system. See chapter [Binding] for details.||
-||3||`<@ checkBox.IsChecked <- Nullable model.BoolProperty @>`||`Binding(path = "BoolProperty")`|| same as #2 but for Nullable.||
-||4||`<@ comboBox.SelectedItem <- model.StringProperty @>`||`Binding(path = "StringProperty")`||straightforward mapping, except that the compiler generated coercion <br>is discarded. See chapter [Binding] for details.||
-||5||`<@ textBlock.Text <- String.Format(format, model.Property) @>`||`Binding(path = "Property", StringFormat = format)`||#1 + `StringFormat`||
-||6||`<@ control.Property <- func model.Property @>`||`Binding(path = "Property",`<br>`Converter = IValueConverter.OneWay func,`<br>`Mode = BindingMode.OneWay)`||#1 + Converter||
-||6a||`<@ button.IsEnable <- not model.BoolProperty @>`||same as #6 with func = not||||
-||7||`<@ this.Control.AddToChart.Visibility <- converter.Apply model.AddToChartEnabled @>`||`Binding(path = "Property", Converter = converter)`||Using `IValueConverter` implemenations||
-||8||[http://msdn.microsoft.com/en-us/library/ms595227.aspx Selector]-based controls binding|| || ||
-||9||[http://msdn.microsoft.com/en-us/library/system.windows.controls.datagrid.aspx DataGrid] binding|| || ||
-||10||`<@ control.Property <- model.Collection.CurrentItem @>`||`Binding(path = "Collection/")`||See [http://msdn.microsoft.com/en-us/library/ms742451.aspx#sourcetraversal MSDN] for details.||
-||11||`<@ textBox.Text <- model.Property1.StringProperty2 @>`||`Binding(path = "Property1.StringProperty2")`||See [http://msdn.microsoft.com/en-us/library/ms742451.aspx#multipleindirect MSDN]||
-||11a||`<@ control.Property <- model.Collection.CurrentItem.Property1 @>`||`Binding(path = "Collection/Property1")`|| Same as 11, just includes collection in path.||
+ # | Original assignment <br/>statement quotation | Resulting Binding | Notes 
+---|---|----|---------
+ 1| `<@ textBox.Text <- `<br/>`model.StringProperty @>` | `Binding(path = "StringProperty")` | straightforward mapping 
+ 2| `<@ textBox.Text <- `<br/>`string model.NonStringProperty @>` | `Binding(path = "NonStringProperty")` | straightforward mapping, except that string "shim" happily discards type system. See chapter [[Data Binding]] for details.
+ 3 | `<@ checkBox.IsChecked <- `<br/>`Nullable model.BoolProperty @>` | `Binding(path = "BoolProperty")` | same as #2 but for Nullable.
+ 4 | `<@ comboBox.SelectedItem <- `<br/>`model.StringProperty @>` | `Binding(path = "StringProperty")` | straightforward mapping, except that the compiler <br> generated coercion is discarded. See chapter [[Data Binding]] for details.
+ 5 | `<@ textBlock.Text <- `<br/>`String.Format(format, model.Property) @>` | `Binding(path = "Property", `<br>`StringFormat = format)` | #1 + `StringFormat`
+ 6 | `<@ control.Property <- `<br/>`func model.Property @>` | `Binding(path = "Property",`<br>`Converter = IValueConverter.OneWay func,`<br>`Mode = BindingMode.OneWay)` | #1 + Converter 
+ 6a | `<@ button.IsEnable <- `<br/>`not model.BoolProperty @>` | same as #6 with func = not | | 
+ 7 | `<@ this.Control.AddToChart.Visibility <- `<br/>`converter.Apply model.AddToChartEnabled @>` | `Binding(path = "Property",`<br/>`Converter = converter)` | Using `IValueConverter` implemenations
+ 8 | [Selector](http://msdn.microsoft.com/en-us/library/ms595227.aspx)-based controls binding |  |
+ 9 | [DataGrid](http://msdn.microsoft.com/en-us/library/system.windows.controls.datagrid.aspx) binding| | 
+ 10 | `<@ control.Property <- `<br/>`model.Collection.CurrentItem @>` | `Binding(path = "Collection/")` | See [MSDN](http://msdn.microsoft.com/en-us/library/ms742451.aspx#sourcetraversal) for details.
+ 11 | `<@ textBox.Text <- `<br/>`model.Property1.StringProperty2 @>` | `Binding(path = "Property1.StringProperty2")` | See [MSDN](http://msdn.microsoft.com/en-us/library/ms742451.aspx#multipleindirect)
+ 11a | `<@ control.Property <- `<br/>`model.Collection.CurrentItem.Property1 @>` | `Binding(path = "Collection/Property1")` | Same as 11, just includes collection in path 
 
 To handle all combinations we factor-out parsing right-hand side of assignment statement into a separate `BindingExpression` active pattern: 
  
@@ -104,9 +105,9 @@ To handle all combinations we factor-out parsing right-hand side of assignment s
         ...
 ```
 
-We've seen *#1*, *#2* and *#4* in chapter [Binding] and through the series. 
+We've seen *#1*, *#2* and *#4* in chapter [[Data Binding]] and through the series. 
 
-*#3*. In [CompositionExternalEventSources previous chapter] it was a bit inconvenient to work with `Paused` property of type `Nullable<bool>`, because it had to match the type of `ToggleButton.IsChecked`. Data binding magic knows how to map `Nullable<'T>` to `'T` on model. To take advantage of #3 we change type of `Paused` to bool and insert call to `Nullable` constructor in binding expression to keep compiler happy. Similar to string "shim" and coercion to obj it's discarded during binding setup. 
+*#3*. In [previous chapter](External Event Sources) it was a bit inconvenient to work with `Paused` property of type `Nullable<bool>`, because it had to match the type of `ToggleButton.IsChecked`. Data binding magic knows how to map `Nullable<'T>` to `'T` on model. To take advantage of #3 we change type of `Paused` to bool and insert call to `Nullable` constructor in binding expression to keep compiler happy. Similar to string "shim" and coercion to obj it's discarded during binding setup. 
 
 ```ocaml
 module BindingPatterns = 
@@ -324,7 +325,7 @@ This declarative and simple approach saves a lot of manual coding. A reasonable 
 
 [[Images/BindingDSL.StockPicker.AddToChartVisibility.png]]
 
-The sensible approach would be to bind `Button.Visibility` of type [Visibility] (http://msdn.microsoft.com/en-us/library/system.windows.visibility.aspx) property to `model.AddToChartEnabled`. Unfortunately, it cannot be done directly because Visibility type is 3-value enum, thus it cannot be mapped to a bool value. WPF has built-in [BooleanToVisibilityConverter]http://msdn.microsoft.com/en-us/library/system.windows.controls.booleantovisibilityconverter.aspx) type to mitigate the issue. An assignment statement, the cornerstone of our binding DSL, gives a natural one-way mapping (source -> target), but not the other way around. To have it two-way and keep it sound we need some creative idea. We'll use "pseudo" methods. Intriguing, right? Let's add the following extensions method: 
+The sensible approach would be to bind `Button.Visibility` of type [Visibility] (http://msdn.microsoft.com/en-us/library/system.windows.visibility.aspx) property to `model.AddToChartEnabled`. Unfortunately, it cannot be done directly because Visibility type is 3-value enum, thus it cannot be mapped to a bool value. WPF has built-in [BooleanToVisibilityConverter](http://msdn.microsoft.com/en-us/library/system.windows.controls.booleantovisibilityconverter.aspx) type to mitigate the issue. An assignment statement, the cornerstone of our binding DSL, gives a natural one-way mapping (source -> target), but not the other way around. To have it two-way and keep it sound we need some creative idea. We'll use "pseudo" methods. Intriguing, right? Let's add the following extensions method: 
 
 ```ocaml
 type IValueConverter with 
@@ -388,6 +389,7 @@ type StockPricesChartModel() =
 ```
  
 Here is how we do `Symbol ComboBox` binding: 
+
 ```ocaml
 type StockPricesChartView(control) as this =
     ... 
@@ -400,7 +402,6 @@ type StockPricesChartView(control) as this =
         ) 
         ...
 ```
-
 It is a nice alternative to less cohesive and more error-prone (especially for string-based `DisplayMemberPath` ) 
 ```ocaml
         ... 
@@ -411,7 +412,7 @@ It is a nice alternative to less cohesive and more error-prone (especially for s
             @> 
         this.Control.Symbol.DisplayMemberPath <- "Symbol" 
         ... 
-```ocaml
+```
 
 Implementation and type signature are: 
 ```ocaml
@@ -512,8 +513,8 @@ This is a demo for #10 and #11a. In order for this to work, `PropertyPath` activ
 This `CurrentItem` functionality is nicely mapped to WPF [PropertyPath XAML Syntax](http://msdn.microsoft.com/en-us/library/ms742451.aspx). It's not critical to have, but the technique is nice. Other mappings, like numeric and symbolic indexers or even multi-indexers, can be done too, but are not particularly useful. 
 
 Binding DSL tried to cover a lot, but not everything. The backdoor to use standard API calls like [FrameworkElement.SetBinding](http://msdn.microsoft.com/en-us/library/ms598270.aspx) or [BindingOperations.SetBinding](http://msdn.microsoft.com/en-us/library/system.windows.data.bindingoperations.setbinding.aspx) is always available. Some additional extensions are definitely possible. For example:
-  * [DataGridComboBoxColumn]http://msdn.microsoft.com/en-us/library/system.windows.controls.datagridcomboboxcolumn.aspx) doesn't inherit from `DataGridBoundColumn` and therefore requires special support. Ironically, `DataGridComboBoxColumn` has the same binding API as `Selector/ComboBox`, but because of "brilliant" single inheritance idea (thanks again, Java), or lack of mixins they do not share same base class or interface. 
-  * Quotation like <@ model.Property <- control.Property @> can be mapped to a binding with the mode set to [OneWayToSource]http://msdn.microsoft.com/en-us/library/system.windows.data.bindingmode.aspx).
+  * [DataGridComboBoxColumn](http://msdn.microsoft.com/en-us/library/system.windows.controls.datagridcomboboxcolumn.aspx) doesn't inherit from `DataGridBoundColumn` and therefore requires special support. Ironically, `DataGridComboBoxColumn` has the same binding API as `Selector/ComboBox`, but because of "brilliant" single inheritance idea (thanks again, Java), or lack of mixins they do not share same base class or interface. 
+  * Quotation like <@ model.Property <- control.Property @> can be mapped to a binding with the mode set to [OneWayToSource](http://msdn.microsoft.com/en-us/library/system.windows.data.bindingmode.aspx).
 
 Whatever is added has to make sense in current framework and not introduce needless complexity. 
 
