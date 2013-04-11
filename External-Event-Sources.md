@@ -201,7 +201,7 @@ public static class Observable
 }
 ```
 
-Recently released [Reactive Extensions for .NET 2.0](http://blogs.msdn.com/b/rxteam/archive/2012/06/20/reactive-extensions-v2-0-release-candidate-available-now.aspx) (thanks [Bart](http://channel9.msdn.com/Tags/bart+de+smet) has added support for inlining calls that already are in the proper context. Read "A smarter `SynchronizationContextScheduler`" segment for details. Resulting code follows: 
+Recently released [Reactive Extensions for .NET 2.0](http://blogs.msdn.com/b/rxteam/archive/2012/06/20/reactive-extensions-v2-0-release-candidate-available-now.aspx) (thanks [Bart])(http://channel9.msdn.com/Tags/bart+de+smet) has added support for inlining calls that already are in the proper context. Read "A smarter `SynchronizationContextScheduler`" segment for details. Resulting code follows: 
 ```ocaml
 type Mvc... 
     ...
