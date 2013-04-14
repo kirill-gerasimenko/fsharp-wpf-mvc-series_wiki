@@ -65,7 +65,7 @@ Visual Studio 2012 generates more modern Task-based operations.
 
 Sample Events, Model, and View are trivial. Most interesting changes happen in `SampleController`: 
 ```ocaml
-type SimpleController() = 
+type SampleController() = 
     inherit Controller<SampleEvents, SampleModel>()
     
     let service = new TempConvertSoapClient(endpointConfigurationName = "TempConvertSoap")
