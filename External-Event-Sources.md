@@ -216,7 +216,7 @@ type Mvc...
 "alwaysPost" is the magic switch that tells `SynchronizationContextScheduler` to inline calls whenever possible and this will make those tunneling event handlers working as expected. 
 
 ### Handling event source errors 
-When were dealing with GUI-based event source it was safe to assume that there were no event-generation errors. But adding non-visual sources to the mix changes the picture. No events can follow [OnError] (http://msdn.microsoft.com/en-us/library/dd781657.aspx), therefore event stream dies and exception gets rethrown. Exception handling should be provided on stream-by-stream basis. Look at amended composition logic. 
+When we were dealing with GUI-based event source it was safe to assume that there were no failures originated in event source. But adding non-visual sources to the mix changes the picture. No events can follow [OnError] (http://msdn.microsoft.com/en-us/library/dd781657.aspx), therefore event stream dies and exception gets rethrown. Exception handling should be provided on a stream-by-stream basis. Look at the amended composition logic. 
 
 ```ocaml
 let stopWatch = StopWatchObservable(frequency = TimeSpan.FromSeconds(1.), failureFrequencyInSeconds = 5.)
