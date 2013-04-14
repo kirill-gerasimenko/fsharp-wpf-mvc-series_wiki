@@ -67,10 +67,10 @@ Key points:
     * Compiler will warn you if any of the pattern cases, that is, events are missing. Try commenting out any of the pattern matching cases to see the effect. 
     * It is beneficial to set model as the last parameter in an individual event handler to leverage function partial application and let `EventHandler` implementation be a compiler-checked map. 
 * I made `Substract` event look different to show that extra state can be attached to Discriminated Union case which is an advantage over plain `Enums`. This is useful if some visual state cannot be bound to a model, though it's rare in WPF because most properties are dependency properties and thus represent eligible binding targets. 
-* With explicit IContoller<_, _> interface implementation type inference breaks down a bit, therefore `model` parameter in `Add` and `Subtract` event handlers have to be type annotated. The reason is unknown to me because compiler has enough information to resolver it on its own. We'll look how the problem can be alleviated in the next chapter.
+* With explicit IContoller<_, _> interface implementation type inference breaks down a bit, therefore `model` parameter in `Add` and `Subtract` event handlers have to be type annotated. The reason is unknown to me because compiler has enough information to resolver it on its own. We'll look at how we can work around this problem in the next chapter.
 
 ### Mvc - gluing pieces together.
-Now that all components defined we need to connect them, start event loop and coordinate event processing. Technically these responsibilities can be assigned to controller. We could create base class, put this logic there ans require all controller to inherit from this class. But it will lead to fragile subclass coupling. Better solution is to defined separate component that will play mediator/coordinator role. 
+Now that all components are defined we need to connect them, start event loop and coordinate event processing. Technically these responsibilities can be assigned to controller. We could create base class, put this logic there and require all controllers to inherit from this class. But it will lead to fragile subclass coupling. Better solution is to define a separate component that will play mediator/coordinator role. 
 ```ocaml
 open System.ComponentModel
 
@@ -84,11 +84,11 @@ type Mvc<'Events, 'Model>(model : 'Model, view : IView<'Events>, controller : IC
 A picture is worth a thousand words ...
 [[Images/Mvc2.png]]
 
-Look how loose coupled yet cohesive overall architecture:
+Notice how loose coupled yet cohesive overall architecture is:
 * Model has no dependencies
-* View depends on `'Events` type and implicitly (run-time, through data binding) on `'Model`. We'll make second one explicit in [the next chapter](Data-Binding)
-* Most important, Controller takes dependency only on `'Events` and `'Model`. It allows presentation logic it to be easy testable (see unit tests example below). On other side pattern matching ensures we process all event types coming from View (cohesion).
-* As for Mvc type it depends on everything but it doesn't matter because it stays as is for most of applications. No need (almost) to extend or change it.  
+* View depends on `'Events` type and implicitly (run-time, through data binding) on `'Model`. We'll make the second one explicit in [the next chapter](Data-Binding)
+* Most importantly, Controller takes dependency only on `'Events` and `'Model`. It allows presentation logic to be easy testable (see unit tests example below). On the other side, pattern matching ensures that we process all event types coming from View (cohesion).
+* Mvc type depends on everything but it doesn't matter because it stays as is for most of applications. There is no need to extend or change it.  
 
 ### INotifyPropertyChanged model constraint
 In order for data binding to function properly `Model` should implement `INotifyPropertyChanged` (there are exceptions to this assumption where suggested architecture may not be applicable). Ideally, this constraint should be reflected in the system. `Mvc<_, _>` seems to be the right place because the only other alternative - `IView` - can technically function in static fashion being bound to `Model` without `INotifyPropertyChanged` support (think of [OneTime](http://msdn.microsoft.com/en-us/library/system.windows.data.bindingmode.aspx) binding mode). 
