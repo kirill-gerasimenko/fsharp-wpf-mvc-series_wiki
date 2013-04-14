@@ -115,7 +115,7 @@ type SyncController<'Events, 'Model>(view) =
 
 ### Exception handling
 
-So far we ignored important aspect - exception handling. In presence of asynchronous computation it becomes even more relevant. 
+So far we have ignored an important aspect - exception handling. In presence of asynchronous computations it becomes even more relevant. 
 
 `Mvc<_, _>` type defines abstract `OnError` hook and channels both sync and async computation exception through it.
 
@@ -142,7 +142,7 @@ type Mvc... =
     abstract OnError : ('Events -> exn -> unit) with get, set
     default this.OnError ...
 ```
-If you're happy with default implementation (which re-throws exception __preserving stack trace__) then most sensible way to handle exceptions is to provide callback for global application-wide [Application.DispatcherUnhandledException](http://msdn.microsoft.com/en-us/library/system.windows.application.dispatcherunhandledexception.aspx). 
+If you're happy with default implementation (which re-throws exception __preserving stack trace__), then the most sensible way to handle exceptions is to provide callback for global application-wide [Application.DispatcherUnhandledException](http://msdn.microsoft.com/en-us/library/system.windows.application.dispatcherunhandledexception.aspx). 
 ```ocaml
     ...
     let app = Application()
@@ -152,9 +152,9 @@ If you're happy with default implementation (which re-throws exception __preserv
         args.Handled <- true
     ...
 ```
-The alternative to global handler is to override `OnError`. This is certainly more powerful because override will have access not only to exception instance but also event, model, view and controller. For example, by logging event and model state (maybe also some controller state), exception can be easily reproduced.  
+The alternative to global handler is to override `OnError`. This is certainly more powerful because override will have access not only to exception instance but also to event, model, view and controller. For example, by logging event and model state (maybe also some controller state), exception can be easily reproduced.  
 
-Some noted about default implementation of `OnError`. There are [two ways](http://stackoverflow.com/questions/57383/in-c-how-can-i-rethrow-innerexception-without-losing-stack-trace) to do it on .NET 4.0. Here we use call to undocumented "InternalPreserveStackTrace". It's done in hope that most users will be able switch to .NET 4.5 and use fully supported [ExceptionDispatchInfo](http://msdn.microsoft.com/en-us/library/system.runtime.exceptionservices.exceptiondispatchinfo.aspx). As hypothetical example of custom exception-handling strategy, let's say you're stuck on .NET 4.0 and you don't like using undocumented methods. Let's use exception-wrapper approach (F# has a bit nicer way than C#  to define and unwrap those).
+Some notes about default implementation of `OnError`. There are [two ways](http://stackoverflow.com/questions/57383/in-c-how-can-i-rethrow-innerexception-without-losing-stack-trace) to do it on .NET 4.0. Here we use call to undocumented "InternalPreserveStackTrace" method. It's done in hope that most users will be able switch to .NET 4.5 and use fully supported [ExceptionDispatchInfo](http://msdn.microsoft.com/en-us/library/system.runtime.exceptionservices.exceptiondispatchinfo.aspx). As hypothetical example of custom exception-handling strategy, let's say you're stuck on .NET 4.0 and you don't like using undocumented methods. Let's use exception-wrapper approach (F# has a little better way than C#  to define and unwrap those).
 ```ocaml
 ...
 exception PreserveStackTraceWrapper of exn
@@ -175,7 +175,7 @@ type System.Exception with
         args.Handled <- true...
 ```
 
-To test exception handling use "Kaboom !" button or disconnect from network before call to temperature converter service.
+To test exception handling use "Kaboom !" button or disconnect from network before async call to temperature converter service.
 
 ### Cancellation
 I assume the reader is familiar with a way cancellation is handled in F# async workflows. For more details look at [ Chris's book](http://www.amazon.com/Programming-comprehensive-writing-complex-problems/dp/0596153643/) p.271 and PFX team blog [ post](http://blogs.msdn.com/b/pfxteam/archive/2009/05/22/9635790.aspx). In the current design we start all async workflows without explicitly specifying `CancellationToken` in `Async.StartWithContinuations` call. This means that shared global `CancellationToken` will be used. The only way to cancel it is to call `Async.CancelDefaultToken` method which cancels all running asynchronous workflows (ones that share the same token). "Cancel Async" button initiates the cancellation. 
