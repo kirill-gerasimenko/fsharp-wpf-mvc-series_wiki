@@ -10,14 +10,13 @@ module Extensions =
 [<AbstractClass>]
 type Model() = 
     ...
-    static let notifyPropertyChanged = 
-        {
-            new StandardInterceptor() with
-                member this.PostProceed invocation = 
-                    match invocation.Method, invocation.InvocationTarget with 
-                        | PropertySetter propertyName, (:? Model as model) -> model.ClearError propertyName
-                        | _ -> ()
-        }
+    static let notifyPropertyChanged = {
+        new StandardInterceptor() with
+            member this.PostProceed invocation = 
+                match invocation.Method, invocation.InvocationTarget with 
+                    | PropertySetter propertyName, (:? Model as model) -> model.ClearError propertyName 
+                    | _ -> ()
+    }
     
     let errors = Dictionary()
     ...
