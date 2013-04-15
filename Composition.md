@@ -108,7 +108,6 @@ type IView<'Events, 'Model> =
 
     abstract ShowDialog : unit -> bool
     abstract Show : unit -> Async<bool>
-    abstract Close : bool -> unit
 ```
 In order to be pluggable into bigger `Window`-based `View` it's enough for a view to implement `IPartialView`. Base `View` classes now reflect the change: 
 ```ocaml
@@ -131,7 +130,6 @@ type View<'Events, 'Model, 'Window when 'Window :> Window and 'Window : (new : u
     interface IView<'Events, 'Model> with
         member this.ShowDialog() = ...
         member this.Show() = ...
-        member this.Close isOK' = ...
 ```
 Individual views are descendants of `PartialView`. 
 ```ocaml
@@ -220,7 +218,7 @@ do
             <+> (TempConveterController(), TempConveterView(view.Control.TempConveterControl), fun m -> m.TempConveter)
             <+> (StockPricesChartController(), StockPricesChartView(view.Control.StockPricesChart), fun m -> m.StockPricesChart)
 
-    mvc.Start() |> ignore
+    mvc.StartDialog() |> ignore
 ```
 
 ### Implementation
@@ -272,7 +270,6 @@ type Mvc... =
                         model |> childModelSelector |> childView.SetBindings
                     member __.Show() = view.Show()
                     member __.ShowDialog() = view.ShowDialog()
-                    member __.Close ok = view.Close ok
         }
 
         let compositeController = { 
