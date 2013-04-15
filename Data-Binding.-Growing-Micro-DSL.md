@@ -4,7 +4,7 @@ Creating data bindings out of F# assignment statement quotation as introduced in
 
 ### Binding Target
 
-Let's have a look at `MainView` from previous [External Event Sources] chapter.
+Let's have a look at `MainView` from previous [[External Event Sources]] chapter.
 ```ocaml
 type MainView() as this = 
     inherit View<MainEvents, MainModel, MainWindow>()
