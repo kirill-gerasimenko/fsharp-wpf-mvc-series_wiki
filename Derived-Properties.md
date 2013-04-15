@@ -1,6 +1,7 @@
 With all the sophistication built into Binding DSL we still could not solve problem #1 from [previous chapter](Data-Binding. Growing Micro DSL). To remind, we'd like to show `ProcessName` and `ActiveTab` name on the title of main window. `MainModel` has two properties to hold proper state and there is `MultiBinding` with `StringFormat` property set usage in `MainView.SetBinding`: 
 
 ```ocaml
+
 type MainModel() = 
     ...
     abstract ProcessName : string with get, set
