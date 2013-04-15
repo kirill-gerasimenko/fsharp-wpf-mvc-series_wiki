@@ -1,4 +1,4 @@
-Creating data bindings out of F# assignment statement quotation as introduced in [Binding] chapter still stands. It just needs to be extended to handle various real-world scenarios. 
+Creating data bindings out of F# assignment statement quotation as introduced in [[Data Binding]] chapter still stands. It just needs to be extended to handle various real-world scenarios. 
 
   `Binding.FromExpression <@ ... @>` is a nice facade method to our data binding micro DSL. It has support for batch statements. Mapping from single assignment  statement to a single binding happens in `Expr.ToBindingExpr` extension method. In this post we'll mostly focus on internals of this method. 
 
@@ -206,12 +206,11 @@ The corresponding pattern matching case and helper methods on `IValueConverter` 
 ```ocaml
 ...
 type IValueConverter with 
-    static member Create(convert : 'a -> 'b, convertBack : 'b -> 'a) =  
-        { 
-            new IValueConverter with 
-                member this.Convert(value, _, _, _) = try value |> unbox |> convert |> box with _ -> DependencyProperty.UnsetValue 
-                member this.ConvertBack(value, _, _, _) = try value |> unbox |> convertBack |> box with _ -> DependencyProperty.UnsetValue 
-        } 
+    static member Create(convert : 'a -> 'b, convertBack : 'b -> 'a) =  {
+        new IValueConverter with
+            member this.Convert(value, _, _, _) = try value |> unbox |> convert |> box with _ -> DependencyProperty.UnsetValue
+            member this.ConvertBack(value, _, _, _) = try value |> unbox |> convertBack |> box with _ -> DependencyProperty.UnsetValue
+    }
     static member OneWay convert = IValueConverter.Create(convert, fun _ -> DependencyProperty.UnsetValue) 
 ...
 module BindingPatterns = 
