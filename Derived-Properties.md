@@ -80,7 +80,7 @@ type MainView()...
 This is impressive comparing to what we had: short, declarative, no imperative code, statically typed. `MainModel.Title` property is a key to the puzzle. This is what we call "derived" property - its value is a computation based on other properties `ProcessName` and `ActiveTab.Header`. As one might guess, `PropertyChanged("Title")` notification should be sent if either `ProcessName` or `ActiveTab.Header` have changed. Formally speaking this is a case of transitive dependency. Worth noting, that [ F# sprintf type-safe solution](http://diditwith.net/2008/01/16/WhyILoveFTypesafeFormatStrings.aspx) is better, than non-typed (obj-based) String.Format we would have, if taking the road of extending DSL with multi-binding. 
 
 Others came up with different solutions to the same problem: 
-  * IL [rewriting](http://www.sharpcrafters.com/solutions/notifypropertychanged) or [weaving](https://github.com/SimonCropp/NotifyPropertyWeaver). This seems to be to invasive until [Roslyn](http://msdn.microsoft.com/en-us/vstudio/roslyn.aspx) officially comes in. Also, this one doesn't handle nested dependency like model.property1.property2. 
+  * IL [rewriting](http://www.sharpcrafters.com/solutions/notifypropertychanged) or [weaving](http://github.com/Fody/PropertyChanged/wiki). This seems to be to invasive until [Roslyn](http://msdn.microsoft.com/en-us/vstudio/roslyn.aspx) officially comes in. Also, this one doesn't handle nested dependency like model.property1.property2. 
   * C# [expression trees-based approach](http://knockoutcs.com/index.html). The major disadvantage is that "derived" properties are not looking anymore like normal ones and therefore are excluded from all language and tooling support. 
 
 To provide implementation for the code above we need to dig really deep both into F# and WPF. 
@@ -90,6 +90,7 @@ To provide implementation for the code above we need to dig really deep both int
 First part of our plan is to parse "derived" property implementation and extract dependencies. As usual, [Quotations](http://msdn.microsoft.com/en-us/library/dd233212.aspx) are to rescue. To preserve original property we'll use powerful [ReflectedDefinitionAttribute](http://msdn.microsoft.com/en-us/library/ee353643.aspx), which, when applied to a method (or other language entity) instruct F# compiler to make the quotation expression that implements the method available for use at runtime. To have better contextual name we'll define a type synonym: 
 
 ```ocaml
+
 type NotifyDependencyChangedAttribute = ReflectedDefinitionAttribute 
     
 type MainModel() = 
