@@ -52,11 +52,11 @@ Conceptually, it would be great if we could place incoming events in a queue (in
 [[Images/Observer.Synchronize.Help.png]]
 [[Images/Observer.Checked.Help.png]]
 
-`Synchronize` with `preventReentrancy` being set does exactly what we're looking for. `Checked` is more like asserting that event source conforms `IObservable` semantics. All changes are localized in `Mvc.Activate` method: 
+`Synchronize` with `preventReentrancy` being set does exactly what we're looking for. `Checked` is more like asserting that event source conforms `IObservable` semantics. All changes are localized in `Mvc.Start` method: 
 ```ocaml
 type Mvc... =
     
-    member this.Activate() =
+    member this.Start() =
         controller.InitModel model
         view.SetBindings model
 
@@ -85,7 +85,7 @@ As you can imagine, event handler is hooked up to second argument `TextBox.TexhC
 ```ocaml
 type Mvc...
     ...
-    member this.Activate model =
+    member this.Start() =
         ...
 //#if DEBUG
 //        let observer = observer.Checked()
@@ -97,7 +97,7 @@ Make sure there is a number other than 0 in the second argument text input then 
 
 [[Images/YChangedWithoutReentrancyPrevention.png]]
 
-Remember that `InitModel` serves as an event handler for `Clear`. We see that `YChanged` event handler was called from inside of `InitModel` - the case of the reentrance again. Remove comments in `Mvc.Activate` and run it again - now it should be alright. To make it even more interesting uncomment call to `Checked` and run - you'll see "Reentrancy has been detected." exception. 
+Remember that `InitModel` serves as an event handler for `Clear`. We see that `YChanged` event handler was called from inside of `InitModel` - the case of the reentrance again. Remove comments in `Mvc.Start` and run it again - now it should be alright. To make it even more interesting uncomment call to `Checked` and run - you'll see "Reentrancy has been detected." exception. 
 
 ### Small Embellishments
 
