@@ -163,11 +163,9 @@ This solution has several drawbacks - some are minor, and some are significant:
 
 ### Solution 2
 
-Other approach is to put the same call to `ObserveOnDispatcher` into `Mvc.Activate`: 
+Other approach is to put the same call to `ObserveOnDispatcher` into `Mvc.Start`: 
 ```ocaml
-    member this.Activate model =
-        ...
-        let observer = Observer.Synchronize(observer, preventReentrancy = true)
+    member this.Start model =
         ...
         view.ObserveOnDispatcher()
             .Subscribe(observer)
@@ -243,9 +241,9 @@ If application is executed inside Visual Studio and "Fail" flag is on, we'll see
 The final solution assumes that appropriate `SynchronizationContext` has been established before `Mvc.*Start` call. Using WPF [Application](http://msdn.microsoft.com/en-us/library/system.windows.application.aspx) class is a good way to ensure this. Application module contains helpers that make it easy to bootstrap root `Mvc`: 
 
 ```ocaml
-open System.Runtime.CompilerServices
+open System
 open System.Windows
-open System.Threading
+open System.Runtime.CompilerServices
 
 [<AutoOpen>]
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
@@ -253,13 +251,15 @@ open System.Threading
 module Application = 
 
     [<Extension>] //for C#
-    let AttachMvc(mvc : Mvc<_, _>) =
-        let cts = new CancellationTokenSource()
-        Async.StartImmediate(mvc.AsyncStart() |> Async.Ignore, cts.Token)
-    
+    let AttachMvc(this : Application, mvc : Mvc<_, _>) = 
+        this.Startup.Add <| fun _ -> 
+            assert(this.MainWindow <> null)
+            let eventProcessing = mvc.Start()
+            this.MainWindow.Closed.Add <| fun _ -> eventProcessing.Dispose()
+
     type Application with 
-        member this.Run(mvc, mainWindow) =
-            this.Startup.Add <| fun _ -> AttachMvc mvc
+        member this.Run(mvc, mainWindow : #Window) =
+            AttachMvc(this, mvc)
             this.Run mainWindow
 ```
 
@@ -272,15 +272,8 @@ namespace ...
     {
         public App ()
         {
-            this.Startup += delegate
-            {
-                var model = Model.Create<MainModel>();
-                var view = new MainView(new MainPage());
-                var controller = new MainController();
-                this.MainWindow = view.Control;
-                var mvc = new Mvc<MainPageEvents, MainModel>(model, view, controller);
-                this.AttachMvc(mvc);
-            };
+           ...
+            this.AttachMvc(mvc);
             ...
         }
     }
