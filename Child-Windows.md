@@ -10,10 +10,8 @@ type IView<'Events, 'Model> =
 
     abstract ShowDialog : unit -> bool
     abstract Show : unit -> Async<bool>
-    abstract Close : bool -> unit
 ```
   * `ShowDialog` method has the same meaning as standard [Window.ShowDialog](http://msdn.microsoft.com/en-us/library/system.windows.window.showdialog.aspx) but without pointless nullability. 
-  * `Close` is a utility method. Single `boolean` parameter is propagated as a result of `Show*` methods. 
   * Return type of `Show` is very interesting. If a modal window can be viewed as synchronous computation, than consequently non-modal is an asynchronous one. This demonstrates the power of right abstraction - F# `Async<'T>` type can be used for expressing not only async I/O, but any kind of asynchronous computation. 
 
 View implementation is straightforward:
@@ -32,9 +30,10 @@ type View<'Events, 'Model, 'Window when 'Window :> Window and 'Window : (new : u
         member this.Show() = 
             this.Window.Show()
             this.Window.Closed |> Event.map (fun _ -> isOK) |> Async.AwaitEvent 
-        member this.Close isOK' = 
-            isOK <- isOK'
-            this.Window.Close()
+   ...
+    member this.Close isOK' = 
+        isOK <- isOK'
+        this.Window.Close()
 ```
 Notice a nice usage of pipelining and `Event`/`Async` combinators inside `Show` method. Updated `Mvc` supports two versions of start: sync for modal windows and async for non-modal. Both versions return a `boolean` flag, which essentially indicates whether child `Mvc` confirms or discards `Model` state changes. 
 
@@ -43,28 +42,11 @@ Notice a nice usage of pipelining and `Event`/`Async` combinators inside `Show` 
 ...
 type Mvc... =
     ...
-    member this.Activate() =
-        controller.InitModel model
-        view.SetBindings model
-        view.Subscribe (fun event -> 
-            match controller.Dispatcher event with
-            | Sync eventHandler ->
-                try eventHandler model 
-                with exn -> this.OnException(event, exn)
-            | Async eventHandler -> 
-                Async.StartWithContinuations(
-                    computation = eventHandler model, 
-                    continuation = ignore, 
-                    exceptionContinuation = (fun exn -> this.OnException(event, exn)),
-                    cancellationContinuation = ignore
-                )
-        )
-
-    member this.Start() =
+    member this.StartDialog() =
         use subscription = this.Activate()
         view.ShowDialog()
 
-    member this.AsyncStart() =
+    member this.StartWindow() =
         async {
             use subscription = this.Activate()
             return! view.Show()
@@ -91,13 +73,13 @@ type SampleController() =
         let mvc = Mvc(childModel, view, controller)
         childModel.Value <- model.X
 
-        if mvc.Start()
+        if mvc.StartDialog()
         then 
             model.X <- childModel.Value 
     ...
 ```
 
-Depending on the result of `Mvc.Start` call the new state is either accepted or thrown away. 
+Depending on the result of `Mvc.StartDialog` call the new state is either accepted or thrown away. 
 
 The logic for second "H..." is intentionally a different. There is no state passed from parent. If user clicks "OK", then `TextBox` value gets overridden.
 
@@ -110,7 +92,7 @@ type SampleController() =
     ... 
     member this.Hex2 model = 
         (HexConverter.view(), HexConverter.controller())
-        |> Mvc.start
+        |> Mvc.startDialog
         |> Option.iter(fun resultModel ->
             model.Y <- resultModel.Value 
         )
@@ -124,14 +106,14 @@ So, in case no state is passed, an instance of the model is created by the child
 [<RequireQualifiedAccess>]
 module Mvc = 
 
-    let inline start(view, controller) = 
+    let inline startDialog(view, controller) = 
         let model = (^Model : (static member Create : unit -> ^Model ) ())
-        if Mvc<'Events, ^Model>(model, view, controller).Start() then Some model else None
+        if Mvc<'Events, ^Model>(model, view, controller).StartDialog() then Some model else None
 
-    let inline asyncStart(view, controller) = 
+    let inline startWindow(view, controller) = 
         async {
             let model = (^Model : (static member Create : unit -> ^Model) ())
-            let! isOk = Mvc<'Events, ^Model>(model, view, controller).AsyncStart()
+            let! isOk = Mvc<'Events, ^Model>(model, view, controller).StartWindow()
             return if isOk then Some model else None
         }
 ```
@@ -142,38 +124,35 @@ Alternative model implementation (like fully hand-written with parameterless con
 [<RequireQualifiedAccess>]
 module Mvc = 
      
-    let start(view, controller) = 
+    let startDialog(view, controller) = 
         let model = new 'Model()
-        if Mvc<'Events, 'Model>(model, view, controller).Start() then Some model else None
+        if Mvc<'Events, 'Model>(model, view, controller).StartDialog() then Some model else None
 
-    let asyncStart(view, controller) = 
+    let startWindow(view, controller) = 
         async {
             let model = new 'Model()
-            let! isOk = Mvc<'Events, 'Model>(model, view, controller).AsyncStart()
+            let! isOk = Mvc<'Events, 'Model>(model, view, controller).StartWindow()
             return if isOk then Some model else None
         }
 ```
 
 These Mvc extensions can be bundled together with `Model` definition and placed into a separate assembly, therefore allowing to include various model implementations. 
 
-Before we get to the implementation details of `HexConverter` MVC-triple I would like to bring the reader's attention to `View` extensions module: 
+Before we get to the implementation details of `HexConverter` MVC-triple I would like to bring the reader's attention to additional methods of `View` class : 
 ```ocaml
-[<AutoOpen>]
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-module View = 
-    
-    type IView<'Events, 'Model> with
+[<AbstractClass>]
+type View...
+    ...
+    member this.OK() = this.Close true
+    member this.Cancel() = this.Close false
 
-        member this.OK() = this.Close true
-        member this.Cancel() = this.Close false
-
-        member this.CancelButton with set(value : Button) = value.Click.Add(ignore >> this.Cancel)
-        member this.DefaultOKButton 
-            with set(value : Button) = 
-                value.IsDefault <- true
-                value.Click.Add(ignore >> this.OK)
+    member this.CancelButton with set(value : Button) = value.Click.Add(ignore >> this.Cancel)
+    member this.DefaultOKButton 
+        with set(value : Button) = 
+            value.IsDefault <- true
+            value.Click.Add(ignore >> this.OK)
 ```
-Methods `OK` and `Cancel` are more readable shortcuts for calling `IView.Close`. Properties `OKButton` and `CancelButton` are helpful when it's only needed to attach a closing logic to a button without event handler in `Controller`. Defined in the extension module these helpers can be used with different `IView` implementations. 
+Methods `OK` and `Cancel` are more readable shortcuts for calling `View.Close`. Properties `OKButton` and `CancelButton` are helpful when it's only needed to attach a closing logic to a button without event handler in `Controller`.
 
 While `HexConverter` MVC-triple implementation looks trivial (if not boring) I thought I would show a "cool" way to do this using module-scoped definitions, functions and objects expressions: 
 ```ocaml
