@@ -174,9 +174,10 @@ type XamlProviderView<'Events, 'Model>(window : Window) =
         member this.Show() = 
             window.Show()
             window.Closed |> Event.map (fun _ -> isOK) |> Async.AwaitEvent 
-        member this.Close isOK' = 
-            isOK <- isOK'
-            window.Close()
+
+    member this.Close isOK' = 
+        isOK <- isOK'
+        window.Close()
 
     abstract EventStreams : IObservable<'Events> list
     abstract SetBindings : 'Model -> unit
@@ -282,14 +283,16 @@ Starting 4.5 WPF supports [INotifyDataErrorInfo](http://msdn.microsoft.com/en-us
 
 ## ExceptionDispatchInfo
 
-Support for re-throwing exception with original stack trace was a long awaited feature. Finally [ExceptionDispatchInfo](http://msdn.microsoft.com/en-us/library/system.runtime.exceptionservices.exceptiondispatchinfo.aspx) has arrived. Changes to `Mvc.OnException` are minimal:
+Support for re-throwing exception with original stack trace was a long awaited feature. Finally [ExceptionDispatchInfo](http://msdn.microsoft.com/en-us/library/system.runtime.exceptionservices.exceptiondispatchinfo.aspx) has arrived. Changes to `Mvc.OnError` are minimal:
 ```ocaml
 ...
 open System.Runtime.ExceptionServices
 ...
 type Mvc ... =
+
+    let mutable onError = fun _ exn -> ExceptionDispatchInfo.Capture(exn).Throw()
     ...
-    abstract OnException : 'Events * exn -> unit
-    default this.OnException(_, exn) = ExceptionDispatchInfo.Capture(exn).Throw() 
+    abstract OnError : ('Events -> exn -> unit) with get, set
+    default this.OnError with get() = onError and set value = onError <- value
     ...
 ```
