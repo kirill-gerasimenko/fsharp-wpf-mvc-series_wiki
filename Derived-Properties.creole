@@ -1,0 +1,44 @@
+With all the sophistication built into Binding DSL we still could not solve problem #1 from [previous chapter](Data-Binding. Growing Micro DSL). To remind, we'd like to show `ProcessName` and `ActiveTab` name on the title of main window. `MainModel` has two properties to hold proper state and there is `MultiBinding` with `StringFormat` property set usage in `MainView.SetBinding`:
+
+```ocaml
+type MainModel() = 
+    ...
+    abstract ProcessName : string with get, set
+    abstract ActiveTab : string with get, set
+    
+type MainEvents = 
+    | ActiveTabChanged of string 
+    
+type MainView() as this = 
+    inherit View<MainEvents, MainModel, MainWindow>()
+    ...
+    override this.EventStreams = 
+        [   
+            yield this.Control.Tabs.SelectionChanged |> Observable.map(fun _ -> 
+                let activeTab : TabItem = unbox this.Control.Tabs.SelectedItem 
+                let header = string activeTab.Header 
+                ActiveTabChanged header) 
+            ...
+        ]
+    
+    override this.SetBindings model = 
+        let titleBinding = MultiBinding(StringFormat = "{0} - {1}") 
+        titleBinding.Bindings.Add <| Binding("ProcessName") 
+        titleBinding.Bindings.Add <| Binding("ActiveTab") 
+        this.Control.SetBinding(Window.TitleProperty, titleBinding) |> ignore 
+        ...
+
+type MainController...
+    
+    override this.InitModel model = 
+        model.ProcessName <- Process.GetCurrentProcess().ProcessName 
+        model.ActiveTab <- "Calculator" 
+        ...
+    
+    override this.Dispatcher = Sync << function 
+        | ActiveTabChanged header -> this.ActiveTabChanged header 
+        ...
+    
+    member this.ActiveTabChanged header model = 
+        model.ActiveTab <- header 
+```
