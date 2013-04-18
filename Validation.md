@@ -78,7 +78,7 @@ Let's go step by step through the snippet:
  * breaking down `setError`: 
   * First parameter of quotation type is deconstructed in place extracting only property name. This technique is similar to [Pattern matching function](http://msdn.microsoft.com/en-us/library/dd233242.aspx).
   * [Member constraints](http://msdn.microsoft.com/en-us/library/dd548046.aspx) are placed on Model type. This is a reason for inlining and hat-notation on model type. The technique is a bit esoteric, you can find more examples [here](http://codebetter.com/matthewpodwysocki/2009/09/28/generically-constraining-f-part-ii/). 
-  * This is done not for the sake of trying a cool feature. Considering variety of ways Model can be implemented (hand-written, Castle dynamic proxy, linfu dynamic proxy, IOC proxy, Notify Property Weaver, code-gen, etc.) it places a very lightweight constraint on the use of the `Validation` module: only to have method `SetError` of type: _{{{string * string -> unit}}}_.
+  * This is done not for the sake of trying a cool feature. Considering variety of ways Model can be implemented (hand-written, Castle dynamic proxy, linfu dynamic proxy, IOC proxy, Notify Property Weaver, code-gen, etc.) it places a very lightweight constraint on the use of the `Validation` module: only to have method `SetError` of type: _`string * string -> unit`_.
 
 Now it’s time for a usage example. If we want to display error whenever user tries to divide by zero in our sample calculator, the following code can appear in controller: 
 ```ocaml
