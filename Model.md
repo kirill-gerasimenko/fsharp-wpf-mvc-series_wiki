@@ -3,7 +3,7 @@ Let's begin with the first constituent of MVC - Model.
 Model has two primary responsibilities:
 
 1. It serves as a state container.
-2. It implements [INotifyPropertyChanged](http://msdn.microsoft.com/en-us/library/ms229614.aspx) which is the core of [data binding](http://martinfowler.com/eaaDev/DataBinding.html)-based solution.
+2. It implements [INotifyPropertyChanged](http://msdn.microsoft.com/en-us/library/ms229614.aspx) which is required for [data binding](http://martinfowler.com/eaaDev/DataBinding.html)-based solution.
 
 ### INotifyPropertyChanged implementation
 There are [many ways](http://10rem.net/blog/2010/12/16/strategies-for-improving-inotifypropertychanged-in-wpf-and-silverlight) to implement `INotifyPropertyChanged`, including some  [minor enhancements] (http://jesseliberty.com/2012/06/28/c-5making-inotifypropertychanged-easier/) introduced in C# 5.0. Hopefully, [Roslyn] (http://msdn.microsoft.com/en-us/vstudio/roslyn.aspx) is going to be a technology to further improve the matter. 
