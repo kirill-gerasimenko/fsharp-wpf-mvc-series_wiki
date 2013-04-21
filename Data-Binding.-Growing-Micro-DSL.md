@@ -330,7 +330,7 @@ The sensible approach would be to bind `Button.Visibility` of type [Visibility] 
 type IValueConverter with 
     ...
     member this.Apply _ = undefined
-</code>  
+```
 
 of type signature: 
 
