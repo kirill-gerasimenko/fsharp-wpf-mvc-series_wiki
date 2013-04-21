@@ -69,7 +69,7 @@ let (|SingleStepPropertySelector|) (expr : PropertySelector<'T, 'a>) =
         property.Name, fun(this : 'T) -> property.GetValue(this, [||]) |> unbox<'a>
     | _ -> invalidArg "Property selector quotation" (string expr)
     
-let inline setError( SingleStepPropertySelector(propertyName, _) : PropertySelector< ^Model, _>) message model = 
+let inline setError (SingleStepPropertySelector(propertyName, _) : PropertySelector< ^Model, _>) message model = 
     (^Model : (member SetError : string * string -> unit) (model, propertyName, message))
 ```
 Let's go step by step through the snippet: 
