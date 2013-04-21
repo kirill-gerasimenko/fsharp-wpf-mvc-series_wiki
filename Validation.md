@@ -102,7 +102,7 @@ Some other useful validation functions:
 ...
 let inline clearError expr = setError expr null
     
-let inline invalidIf( SingleStepPropertySelector(propertyName, getValue : ^Model -> _)) predicate message model = 
+let inline invalidIf (SingleStepPropertySelector(propertyName, getValue : ^Model -> _)) predicate message model = 
     if model |> getValue |> predicate 
     then 
         (^Model : (member SetError : string * string -> unit) (model, propertyName, message)) 
