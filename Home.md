@@ -17,6 +17,7 @@ This is a small, yet powerful framework, designed for building WPF applications 
 12. [[Data-Binding. Growing Micro DSL]]
 13. [[Derived properties]]
 14. [[Visual Studio 2012]]
+15. [[INotifyPropertyChanged Type Provider]]
 
 ### Acknowledgements
 
