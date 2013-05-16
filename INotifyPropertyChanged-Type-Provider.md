@@ -1,1 +1,1 @@
-For long time I've been obsessed with idea to leverage F# "Type providers" feature for generating  INotifyPropertyChanged implementation for model.  
+For long time I've been obsessed with idea to use F# "Type providers" feature to generate  INotifyPropertyChanged implementation for model.  
