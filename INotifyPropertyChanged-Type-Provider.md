@@ -1,0 +1,1 @@
+For long time I've been obsessed with idea leverage F# "Type providers" feature to generate INotifyPropertyChanged implementation for model.  
