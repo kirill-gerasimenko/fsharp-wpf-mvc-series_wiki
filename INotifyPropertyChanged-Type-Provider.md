@@ -17,7 +17,7 @@ It's not that simple to make a design choice between "erased types" and "generat
 
 We'll see later in the chapter how this rule applies to design decisions.
 ***
-###Attemp 1 - "erased types" + ExpandoObject
+###Attemp #1 - "erased types" + ExpandoObject
 Being novice in type provider development, I decided to start from pilot version. Naturally, I though to try "erased types" first. Here is test script that shows usage ([github] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/TryExpando.fsx)):
 ```ocaml
 #r @"SampleModelPrototypes\bin\Debug\SampleModelPrototypes.dll"
@@ -64,4 +64,11 @@ Second assembly "ExpandoObject.dll" contains type provider itself. As you probab
 (which is one of the primary reasons to replace dynamic proxy based approach with Type Provider). 
   * Data binding to dynamic objects is sub-optimal. Look [here] (http://blogs.msdn.com/b/silverlight_sdk/archive/2011/04/26/binding-to-dynamic-properties-with-icustomtypeprovider-silverlight-5-beta.aspx) for details ("What about WPF and DLR?" section).
 
-###Attemp 2 - "erased types" + custom runtime base class
+###Attemp #2 - "erased types" + custom runtime base class
+As next step I introduced [custom run-time class] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/Model.fs) as base for models. Here is brief description:
+  * Supports INPC and INotifyDataErrorInfo  
+  * Uses F# record prototypes as backing storage 
+  * Provides dictionary-like key based set/get operations.
+  * In absence of real properties to support data binding it implements old-fashion [ICustomTypeDescriptor] (http://msdn.microsoft.com/en-us/library/system.componentmodel.icustomtypedescriptor.aspx) interface which was way easier than new on .NET 4.5 [ICustomTypeProvider] (http://msdn.microsoft.com/en-us/library/system.reflection.icustomtypeprovider.aspx) (which is only choice on Silverlight). For details see [this] (http://blogs.msdn.com/b/silverlight_sdk/archive/2011/04/26/binding-to-dynamic-properties-with-icustomtypeprovider-silverlight-5-beta.aspx).
+
+Type provider [implementation] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/NotifyPropertyChangedTypeProvider.fs) didn't change much. Instead of `ExpandoObject` it injects `Model` type. 
