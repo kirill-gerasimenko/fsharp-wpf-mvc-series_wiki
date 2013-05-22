@@ -152,4 +152,15 @@ do
     window.ShowDialog() |> ignore 
 ```
 Running application without more changes gives us:
-[[Images/INPC.TypeProvider.Broken.Binding]]
+[[Images/INPC.TypeProvider.Broken.Binding.png]]
+
+This is because even though we satisfied WPF data binding engine requirment by providing implementation of `ICustomTypeDescriptor` our data binding DSL still expects real typed properties (ahh! those run-time semantics). Small change in `Binding` module to fix the issue:
+```ocaml
+let rec (|PropertyPath|_|) = function 
+    ...
+    //Support for type provider erased types
+    | Call((Some (Value (:? ICustomTypeDescriptor as model, _))), get_Item, [ Value(:? string as propertyName, _)]) 
+        when get_Item.Name = "get_Item" && model.GetProperties().Find(propertyName, ignoreCase = false) <> null -> Some propertyName
+    | _ -> None
+
+```
