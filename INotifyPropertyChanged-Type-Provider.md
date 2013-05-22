@@ -17,6 +17,7 @@ It's not that simple to make a design choice between "erased types" and "generat
 
 We'll see later in the chapter how this rule applies to design decisions.
 ***
+###Attemp 1 - "erased types" + ExpandoObject
 Being novice in type provider development, I decided to start from pilot version. Naturally, I though to try "erased types" first. Here is test script that shows usage ([github] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/TryExpando.fsx)):
 ```ocaml
 #r @"SampleModelPrototypes\bin\Debug\SampleModelPrototypes.dll"
@@ -61,4 +62,6 @@ Second assembly "ExpandoObject.dll" contains type provider itself. As you probab
   * No support for INotifyDataErrorInfo ( IDataErrorInfo on .NET 4)
   * Even though data binding to dynamic objects works in WPF it's no-go for platform like WinRT 
 (which is one of the primary reasons to replace dynamic proxy based approach with Type Provider). 
-  * Data binding to dynamic objects is very sub-optimal. Look [here] (http://blogs.msdn.com/b/silverlight_sdk/archive/2011/04/26/binding-to-dynamic-properties-with-icustomtypeprovider-silverlight-5-beta.aspx) for details ("What about WPF and DLR?" section).
+  * Data binding to dynamic objects is sub-optimal. Look [here] (http://blogs.msdn.com/b/silverlight_sdk/archive/2011/04/26/binding-to-dynamic-properties-with-icustomtypeprovider-silverlight-5-beta.aspx) for details ("What about WPF and DLR?" section).
+
+###Attemp 2 - "erased types" + custom runtime base class
