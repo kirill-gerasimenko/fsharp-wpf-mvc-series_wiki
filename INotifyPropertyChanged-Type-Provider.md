@@ -73,4 +73,4 @@ As next step I introduced [custom run-time class] (https://github.com/dmitry-a-m
 
 Type provider [implementation] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/NotifyPropertyChangedTypeProvider.fs) didn't change much. Instead of `ExpandoObject` it injects [Model] ((https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/Model.fs) type. 
 
-To test-drive this implementation I wanted to use something more elaborate than script. I ported with minimal changes [[Validation]] chapter application.
+To test-drive this implementation I wanted to use something more elaborate than script. I tried to simplified version of [[Validation]] chapter application  and kept model related functionality because that what's most affected by INPC Type Provider.
