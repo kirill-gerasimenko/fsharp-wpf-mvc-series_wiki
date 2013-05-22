@@ -73,4 +73,52 @@ As next step I introduced [custom run-time class] (https://github.com/dmitry-a-m
 
 Type provider [implementation] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/NotifyPropertyChangedTypeProvider.fs) didn't change much. Instead of `ExpandoObject` it injects [Model] ((https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/Model.fs) type. 
 
-To test-drive this implementation I wanted to use something more elaborate than script. I tried to simplified version of [[Validation]] chapter application  and kept model related functionality because that what's most affected by INPC Type Provider.
+To test-drive this implementation I wanted to use something more elaborate than script. I tried to simplified version of [[Validation]] chapter application  and kept model related functionality because that what's most affected by INPC Type Provider. I left out concept of view and controller. They are very important but irrelevant for our discussion now. [Data binding] and [Validation] modules were taken as is for now. 
+Here is model prototype definition:
+```ocaml
+type Operations =
+    | Add = 0
+    | Subtract = 1
+    | Multiply = 2
+    | Divide = 3
+
+type Calculator = {
+    mutable AvailableOperations : Operations[] 
+    mutable SelectedOperation : Operations
+    mutable X : int
+    mutable Y : int
+    mutable Result : int
+}
+```
+Here code that replaced view:
+```ocaml
+let (?) (window : Window) name : 'T = name |> window.FindName|> unbox
+
+type ViewModels = NotifyPropertyChanged<"SampleModelPrototypes">
+
+//Create Window
+let window : Window = Application.LoadComponent(Uri("MainWindow.xaml", UriKind.Relative)) |> unbox
+let x : TextBox = window?X
+let y : TextBox = window?Y
+let operations : ComboBox = window?Operation
+let result : TextBlock = window?Result
+let calculate : Button = window?Calculate
+let clear : Button = window?Clear
+
+//Create models
+let model = ViewModels.Calculator()
+model.AvailableOperations <- typeof<Operations> |> Enum.GetValues |> unbox
+model.SelectedOperation <- model.AvailableOperations.[0] 
+
+ //Data bindings 
+Binding.FromExpression 
+    <@ 
+        x.Text <- string model.X 
+        y.Text <- string model.Y
+        result.Text <- string model.Result
+        operations.ItemsSource <- model.AvailableOperations
+        operations.SelectedItem <- model.SelectedOperation
+    @>
+
+window.DataContext <- model
+```
