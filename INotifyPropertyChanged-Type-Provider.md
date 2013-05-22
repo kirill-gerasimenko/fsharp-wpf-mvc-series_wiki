@@ -57,4 +57,8 @@ type Person = {
 }
 ```
 Based on `Person`, type accessible via `ViewModel.Pereson` generated with support for INotifyPropertyChanged.
-Second assembly "ExpandoObject.dll" contains type provider itself. As you probably guessed, it's "erased types" replaced by [ExpandoObject] (http://msdn.microsoft.com/en-us/library/system.dynamic.expandoobject.aspx) class in final code. Properties getters/setters mapped to dictionary-style set/get key-based invocations. Setting key to value causes ExpandoObject raise INotidyProperyChanged.PropertyChanged event to be risen because ExpandoObject has built-in support for it.
+Second assembly "ExpandoObject.dll" contains type provider itself. As you probably guessed, it's "erased types" replaced by [ExpandoObject] (http://msdn.microsoft.com/en-us/library/system.dynamic.expandoobject.aspx) class in final code. Properties getters/setters mapped to dictionary-style set/get key-based invocations. Setting key to value causes ExpandoObject raise INotidyProperyChanged.PropertyChanged event to be risen because ExpandoObject has built-in support for it. Not bad for pilot but this version has numerous problem. I will mention only obvious ones: 
+  * No support for INotifyDataErrorInfo ( IDataErrorInfo on .NET 4)
+  * Even though data binding to dynamic objects works in WPF it's no-go for platform like WinRT 
+(which is one of the primary reasons to replace dynamic proxy based approach with Type Provider). 
+  * Data binding to dynamic objects is very sub-optimal. Look [here] (http://blogs.msdn.com/b/silverlight_sdk/archive/2011/04/26/binding-to-dynamic-properties-with-icustomtypeprovider-silverlight-5-beta.aspx) for details ("What about WPF and DLR?" section).
