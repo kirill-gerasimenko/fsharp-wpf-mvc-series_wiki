@@ -48,3 +48,13 @@ Property DateOfBirth. Model: seq
   [[FirstName, Dmitry]; [LastName, Morozov]; [DateOfBirth, 1/1/1974 12:00:00 AM]]
 ...
 ```
+`SampleModelPrototypes.dll` assembly contains [definition of Person model] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/SampleModelPrototypes/Person.fs):
+```ocaml
+type Person = {
+    mutable FirstName : string 
+    mutable LastName : string
+    mutable DateOfBirth : System.DateTime
+}
+```
+Based on `Person`, type accessible via `ViewModel.Pereson` generated with support for INotifyPropertyChanged.
+Second assembly "ExpandoObject.dll" contains type provider itself. As you probably guessed, it's "erased types" replaced by [ExpandoObject] (http://msdn.microsoft.com/en-us/library/system.dynamic.expandoobject.aspx) class in final code. Properties getters/setters mapped to dictionary-style set/get key-based invocations. Setting key to value causes ExpandoObject raise INotidyProperyChanged.PropertyChanged event to be risen because ExpandoObject has built-in support for it.
