@@ -181,4 +181,12 @@ let (|SingleStepPropertySelector|) (expr : PropertySelector<'T, 'a>) =
         propertyName, fun(this : 'T) -> get_Item.Invoke(this, [| propertyName |]) |> unbox<'a>
     ...
 ```
-That it works identically to application from [[Validation]] chapter.
+Now it works identically to application from [[Validation]] chapter. Is that all? Not really. This solution still has numerous problems:
+  1. Those changes we made to binding and validation modules feels like hacks. They violate "Separation of concerns" principle. I was very keen to keep the framework design independent to model implementation (to remind: the only requirement for model is to implement INotifyPropertyChanged). Fact that we have different (type provider based) implementation should not force changes in binding or validation.
+  2. The solution can either hard to port to WinRT (which is again one of the drivers for my work on INPC type provider). Thought it still seems to be [possible] (http://jaylee.org/post/2012/03/07/Xaml-integration-with-WinRT-and-the-IXamlMetadataProvider-interface.aspx) but seems like "generated types" [enable easier solution] (http://jaylee.org/post/2012/11/26/DataBinding-performance-in-WinRT-and-the-Bindable-attribute.aspx).
+  3. Going forward I certainly plan to implement same [[Derived Properties]] feature as one for dynamic proxy based models. I don't see how it can be implemented for "erased types".
+  4. Once user refers to model prototypes assembly binary it's locked. Visual Studio has be re-opened in case prototypes assembly needs be recompiled which is certainly sub-optimal experience.
+
+#4 is really nasty problem. I spent quite some looking for solution (like custom remote domain) but hit the wall. 
+
+#1, #2 and #3 can be solved if I'll switch to "generated types" type provider. I'm lookinf forward to this  challenge.
