@@ -156,6 +156,9 @@ Running application without more changes gives us:
 
 This is because even though we satisfied WPF data binding engine requirment by providing implementation of `ICustomTypeDescriptor` our data binding DSL still expects real typed properties (ahh! those run-time semantics). Small change in `Binding` module to fix the issue:
 ```ocaml
+...
+module FSharp.Windows.Binding
+...
 let rec (|PropertyPath|_|) = function 
     ...
     //Support for type provider erased types
@@ -164,3 +167,18 @@ let rec (|PropertyPath|_|) = function
     | _ -> None
 
 ```
+Validation module has to be fixed for very same reason:
+```ocaml
+...
+module FSharp.Windows.Validation
+...
+let (|SingleStepPropertySelector|) (expr : PropertySelector<'T, 'a>) = 
+    match expr with 
+    ...
+    | Lambda(arg, Coerce (Call (Some (Var selectOn), get_Item, [ Value(:? string as propertyName, _) ]), _)) when get_Item.Name = "get_Item" -> 
+        assert(arg = selectOn)
+        assert(typeof<ICustomTypeDescriptor>.IsAssignableFrom(selectOn.Type))
+        propertyName, fun(this : 'T) -> get_Item.Invoke(this, [| propertyName |]) |> unbox<'a>
+    ...
+```
+That it works identically to application from [[Validation]] chapter.
