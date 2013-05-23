@@ -9,11 +9,14 @@ As a reasonable compromise for the framework I came up with the following idea:
   * This assembly must be referenced in project where views and controllers are defined
   * Assembly short name is supplied as input to NotifyPropertyChanged type provider
 
-There are two kinds of F# type providers: "erased types" and "generated types". First is ubiquitously popular and has better development support. Second ... To this point I don't know any serious "generated types" based implementation.
+There are two kinds of F# type providers: "erased types" and "generated types". First is ubiquitously popular and has better development support. As for the second, to this point I don't know any serious "generated types" based implementation.
 ***
-It's not that simple to make a design choice between "erased types" and "generated types". I found particularly relevant to INPC Type Provider this note from "Details about Erased Provided Types" section of "Creating a Type Provider" [MSDN tutorial] (http://msdn.microsoft.com/en-us/library/hh361034.aspx):
+It's not that simple to make a design choice between "erased types" and "generated types". I found this  note from "Details about Erased Provided Types" section of "Creating a Type Provider" [MSDN tutorial] (http://msdn.microsoft.com/en-us/library/hh361034.aspx) particularly relevant to INPC Type Provider:
 
-... When you are writing a provider where accurate runtime-type semantics aren't critical for practical use of the information space.
+_...erased provided types ... are particularly useful in the following situations:
+  ...
+  When you are writing a provider where accurate runtime-type semantics aren't critical for practical use of the information space._
+  ...
 
 We'll see later in the chapter how this rule applies to design decisions.
 ***
