@@ -21,7 +21,7 @@ _...erased provided types ... are particularly useful in the following situation
 We'll see later in the chapter how this rule applies to design decisions.
 ***
 ###Round #1 - "erased types" + ExpandoObject
-Being novice in type provider development, I decided to start from pilot version. Naturally, I though to try "erased types" first. Here is test script that shows usage ([github] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/TryExpando.fsx)):
+As a novice in type provider development, I decided to start from pilot version. I thought to try "erased types" first. Here is a test script that shows usage ([github] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/TryExpando.fsx)):
 ```ocaml
 #r @"SampleModelPrototypes\bin\Debug\SampleModelPrototypes.dll"
 #r @"ExpandoObject\bin\Debug\ExpandoObject.dll"
@@ -61,22 +61,22 @@ type Person = {
 }
 ```
 Based on `Person`, type accessible via `ViewModel.Pereson` generated with support for INotifyPropertyChanged.
-Second assembly "ExpandoObject.dll" contains type provider itself. As you probably guessed, it's "erased types" replaced by [ExpandoObject] (http://msdn.microsoft.com/en-us/library/system.dynamic.expandoobject.aspx) class in final code. Properties getters/setters mapped to dictionary-style set/get key-based invocations. Setting key to value causes ExpandoObject raise INotidyProperyChanged.PropertyChanged event to be risen because ExpandoObject has built-in support for it. Not bad for pilot but this version has numerous problem. I will mention only obvious ones: 
+Second assembly "ExpandoObject.dll" contains type provider itself. As you probably guessed, "erased types" are replaced by [ExpandoObject] (http://msdn.microsoft.com/en-us/library/system.dynamic.expandoobject.aspx) class in the compiled  code. Property getters/setters are mapped to dictionary-style set/get key-based invocations. Setting key to value makes ExpandoObject raise INotidyProperyChanged.PropertyChanged event because it has built-in support for it. Not bad for the pilot but this version has numerous problems. I will mention only obvious ones: 
   * No support for INotifyDataErrorInfo ( IDataErrorInfo on .NET 4)
   * Data binding to dynamic objects works in WPF it's no-go for platform like WinRT 
 (which is one of the primary reasons to replace dynamic proxy based approach with Type Provider). 
   * Data binding to dynamic objects is sub-optimal. Look [here] (http://blogs.msdn.com/b/silverlight_sdk/archive/2011/04/26/binding-to-dynamic-properties-with-icustomtypeprovider-silverlight-5-beta.aspx) for details ("What about WPF and DLR?" section).
 
 ###Round #2 - "erased types" + custom runtime base class
-As next step I introduced [custom run-time class] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/Model.fs) as base for models. Here is brief description:
+As the next step I introduced [custom run-time class] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/Model.fs) as base for models. Here is a brief description:
   * Supports INPC and INotifyDataErrorInfo  
   * Uses F# record prototypes as backing storage 
   * Provides dictionary-like key based set/get operations.
-  * Usually data binding engine in WPF relies on reflection in run-time. But in our case real type/properties do not exits in compiled code. As substitution, model custom base class implements [ICustomTypeDescriptor] (http://msdn.microsoft.com/en-us/library/system.componentmodel.icustomtypedescriptor.aspx) interface. Alternatively, it could implement new on .NET 4.5 [ICustomTypeProvider] (http://msdn.microsoft.com/en-us/library/system.reflection.icustomtypeprovider.aspx), which is also the only choice on Silverlight. But it's more tedious despite of what some people [say] (http://blogs.msdn.com/b/silverlight_sdk/archive/2011/04/26/binding-to-dynamic-properties-with-icustomtypeprovider-silverlight-5-beta.aspx). 
+  * Usually data binding engine in WPF relies on reflection in run-time. But in our case real type/properties do not exist in compiled code. As a substitution model custom base class implements [ICustomTypeDescriptor] (http://msdn.microsoft.com/en-us/library/system.componentmodel.icustomtypedescriptor.aspx) interface. Alternatively, it could implement new on .NET 4.5 [ICustomTypeProvider] (http://msdn.microsoft.com/en-us/library/system.reflection.icustomtypeprovider.aspx), but it's more tedious despite of what some people [say] (http://blogs.msdn.com/b/silverlight_sdk/archive/2011/04/26/binding-to-dynamic-properties-with-icustomtypeprovider-silverlight-5-beta.aspx). 
 
-Type provider [implementation] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/NotifyPropertyChangedTypeProvider.fs) didn't change much. Instead of `ExpandoObject` it injects [Model] ((https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/Model.fs) type. 
+Type provider [implementation] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/NotifyPropertyChangedTypeProvider.fs) didn't change much. It injects [Model] ((https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/Model.fs) type instead of `ExpandoObject`. 
 
-To test-drive this implementation I wanted to use something more elaborate than script. I tried to simplified version of [[Validation]] chapter application  and kept model related functionality because that what's most affected by INPC Type Provider. I left out concept of view and controller. They are very important but irrelevant for our discussion now. [[Data binding]] and [[Validation]] modules were taken as is for now. 
+To test-drive this implementation I wanted to use something more elaborate than script. I tried a simplified version of [[Validation]] chapter application but kept model related functionality intact because that what's most affected by INPC Type Provider. I left out concepts of view and controller. They are very important but not relevant to our discussion at the moment. [[Data binding]] and [[Validation]] modules stay the same for now. 
 Here is model prototype definition:
 ```ocaml
 type Operations =
