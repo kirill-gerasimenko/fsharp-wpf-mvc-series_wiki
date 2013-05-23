@@ -154,10 +154,10 @@ do
    //Start
     window.ShowDialog() |> ignore 
 ```
-Running application without more changes gives us:
+Running application without any changes gives us:
 [[Images/INPC.TypeProvider.Broken.Binding.png]]
 
-This is because even though we satisfied WPF data binding engine requirment by providing implementation of `ICustomTypeDescriptor` our data binding DSL still expects real typed properties (ahh! those run-time semantics). Small change in `Binding` module to fix the issue:
+Although we satisfied WPF data binding engine requirments by providing implementation of `ICustomTypeDescriptor` our data binding DSL still expects real typed properties (importance of run-time semantics). Small change in `Binding` module to fix the issue:
 ```ocaml
 ...
 module FSharp.Windows.Binding
@@ -170,7 +170,7 @@ let rec (|PropertyPath|_|) = function
     | _ -> None
 
 ```
-Validation module has to be fixed for very same reason:
+Validation module has to be fixed for the very same reason:
 ```ocaml
 ...
 module FSharp.Windows.Validation
@@ -184,11 +184,11 @@ let (|SingleStepPropertySelector|) (expr : PropertySelector<'T, 'a>) =
         propertyName, fun(this : 'T) -> get_Item.Invoke(this, [| propertyName |]) |> unbox<'a>
     ...
 ```
-Now it works identically to application from [[Validation]] chapter. Is that all? Not really. This solution still has numerous problems:
-  1. Those changes we made to binding and validation modules feels like hacks. They violate "Separation of concerns" principle. I was very keen to keep the framework design independent to model implementation (to remind: the only requirement for model is to implement INotifyPropertyChanged). Fact that we have different (type provider based) implementation should not force changes in binding or validation.
-  2. The solution can either hard to port to WinRT (which is again one of the drivers for my work on INPC type provider). Thought it still seems to be [possible] (http://jaylee.org/post/2012/03/07/Xaml-integration-with-WinRT-and-the-IXamlMetadataProvider-interface.aspx) but seems like "generated types" [enable easier solution] (http://jaylee.org/post/2012/11/26/DataBinding-performance-in-WinRT-and-the-Bindable-attribute.aspx).
-  3. Going forward I certainly plan to implement same [[Derived Properties]] feature as one for dynamic proxy based models. I don't see how it can be implemented for "erased types".
-  4. Once user refers to model prototypes assembly binary it's locked. Visual Studio has be re-opened in case prototypes assembly needs be recompiled which is certainly sub-optimal experience.
+Now it works identically to application from [[Validation]] chapter. Is that all? Not really. This solution still has serious issues:
+  1. The changes we made to binding and validation modules feel like hacks. They violate "Separation of concerns" principle. I was very keen to keep the framework design independent of model implementation (reminder: the only requirement for model is to implement INotifyPropertyChanged). Fact that we have different (type provider based) implementation should not force changes in binding or validation.
+  2. It may be hard to port the solution to WinRT (which is again one of the drivers for my work on INPC type provider). Although it seems to be [possible] (http://jaylee.org/post/2012/03/07/Xaml-integration-with-WinRT-and-the-IXamlMetadataProvider-interface.aspx) but "generated types" [enable easier solution] (http://jaylee.org/post/2012/11/26/DataBinding-performance-in-WinRT-and-the-Bindable-attribute.aspx).
+  3. Going forward I certainly plan to implement same [[Derived Properties]] feature as the one for dynamic proxy based models. I don't see how it can be done with "erased types".
+  4. Once user refers to model prototypes assembly binary it's locked. Visual Studio has be re-opened in case prototypes assembly needs be recompiled which is certainly a sub-optimal experience.
 
 \#4 is really nasty problem. I spent quite some looking for solution (like custom remote domain + shadowing) but hit the wall. 
 
@@ -197,6 +197,3 @@ Now it works identically to application from [[Validation]] chapter. Is that all
 ###Round #3 - "generated types" + (probably) custom runtime base class
 
 *To be continued ...*
-
-P.S.
-Besides F# records as prototypes, I also was thinking to provide support for C#-style view models. "generated types" type provider will generated view by sub-typing and support INPC by overriding virtual properties. Parametric constructors preserved. But unless problem \#4 is solved it cannot be made practical.
