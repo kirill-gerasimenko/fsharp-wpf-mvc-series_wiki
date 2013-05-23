@@ -187,6 +187,13 @@ Now it works identically to application from [[Validation]] chapter. Is that all
   3. Going forward I certainly plan to implement same [[Derived Properties]] feature as one for dynamic proxy based models. I don't see how it can be implemented for "erased types".
   4. Once user refers to model prototypes assembly binary it's locked. Visual Studio has be re-opened in case prototypes assembly needs be recompiled which is certainly sub-optimal experience.
 
-#4 is really nasty problem. I spent quite some looking for solution (like custom remote domain) but hit the wall. 
+\#4 is really nasty problem. I spent quite some looking for solution (like custom remote domain + shadowing) but hit the wall. 
 
-#1, #2 and #3 can be solved if I'll switch to "generated types" type provider. I'm lookinf forward to this  challenge.
+\#1, \#2 and \#3 can be solved if I'll switch to "generated types" type provider. I'm lookinf forward to this  challenge.
+
+###Round #3 - "generated types" + (probably) custom runtime base class
+
+*To be continued ...*
+
+P.S.
+Besides F# records as prototypes, I also was thinking to provide support for C#-style view models. "generated types" type provider will generated view by sub-typing and support INPC by overriding virtual properties. Parametric constructors preserved. But unless problem \#4 is solved it cannot be made practical.
