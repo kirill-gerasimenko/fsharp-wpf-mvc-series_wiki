@@ -21,7 +21,7 @@ _...erased provided types ... are particularly useful in the following situation
 We'll see later in the chapter how this rule applies to design decisions.
 ***
 ###Round #1 - "erased types" + ExpandoObject
-As a novice in type provider development, I decided to start from pilot version. I thought to try "erased types" first. Here is a test script that shows usage ([github] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/TryExpando.fsx)):
+As a novice in type provider development, I decided to start from pilot version. I thought to try "erased types" first. Here is a test script that shows usage ([github] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/POC/TryExpando.fsx)):
 ```ocaml
 #r @"SampleModelPrototypes\bin\Debug\SampleModelPrototypes.dll"
 #r @"ExpandoObject\bin\Debug\ExpandoObject.dll"
@@ -52,7 +52,7 @@ Property DateOfBirth. Model: seq
   [[FirstName, Dmitry]; [LastName, Morozov]; [DateOfBirth, 1/1/1974 12:00:00 AM]]
 ...
 ```
-`SampleModelPrototypes.dll` assembly contains [definition of Person model] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/SampleModelPrototypes/Person.fs):
+`SampleModelPrototypes.dll` assembly contains [definition of Person model] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/POC/SampleModelPrototypes/Person.fs):
 ```ocaml
 type Person = {
     mutable FirstName : string 
@@ -68,13 +68,13 @@ Second assembly "ExpandoObject.dll" contains type provider itself. As you probab
   * Data binding to dynamic objects is sub-optimal. Look [here] (http://blogs.msdn.com/b/silverlight_sdk/archive/2011/04/26/binding-to-dynamic-properties-with-icustomtypeprovider-silverlight-5-beta.aspx) for details ("What about WPF and DLR?" section).
 
 ###Round #2 - "erased types" + custom runtime base class
-As the next step I introduced [custom run-time class] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/Model.fs) as base for models. Here is a brief description:
+As the next step I introduced [custom run-time class] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/POC/CustomRuntimeClass/Model.fs) as base for models. Here is a brief description:
   * Supports INPC and INotifyDataErrorInfo  
   * Uses F# record prototypes as backing storage 
   * Provides dictionary-like key based set/get operations.
   * Usually data binding engine in WPF relies on reflection in run-time. But in our case real type/properties do not exist in compiled code. As a substitution model custom base class implements [ICustomTypeDescriptor] (http://msdn.microsoft.com/en-us/library/system.componentmodel.icustomtypedescriptor.aspx) interface. Alternatively, it could implement new on .NET 4.5 [ICustomTypeProvider] (http://msdn.microsoft.com/en-us/library/system.reflection.icustomtypeprovider.aspx), but it's more tedious despite of what some people [say] (http://blogs.msdn.com/b/silverlight_sdk/archive/2011/04/26/binding-to-dynamic-properties-with-icustomtypeprovider-silverlight-5-beta.aspx). 
 
-Type provider [implementation] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/NotifyPropertyChangedTypeProvider.fs) didn't change much. It injects [Model] ((https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/ErasedTypesPilot/CustomRuntimeClass/Model.fs) type instead of `ExpandoObject`. 
+Type provider [implementation] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/POC/CustomRuntimeClass/NotifyPropertyChangedTypeProvider.fs) didn't change much. It injects [Model] ((https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/POC/CustomRuntimeClass/Model.fs) type instead of `ExpandoObject`. 
 
 To test-drive this implementation I wanted to use something more elaborate than script. I tried a simplified version of [[Validation]] chapter application but kept model related functionality intact because that what's most affected by INPC Type Provider. I left out concepts of view and controller. They are very important but not relevant to our discussion at the moment. [[Data binding]] and [[Validation]] modules stay the same for now. 
 Here is model prototype definition:
