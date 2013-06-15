@@ -192,9 +192,9 @@ Now it works identically to application from [[Validation]] chapter. Is that all
 
 \#4 is really nasty problem. I spent quite some time looking for solution (like custom remote domain + shadowing) but hit the wall. 
 
-\#1, \#2 and \#3 can be solved if I'll switch to "generated types" type provider. I'm lookinf forward to this  challenge.
+\#1, \#2 and \#3 can be solved if I'll switch to "generated types" type provider. I'm looking forward to this  challenge.
 
-##Round #3 - "generated types" + custom runtime base class
+###Round #3 - "generated types" + custom runtime base class
 
 "Generated types" version is the one I recommend to use in real world. To prove it let's port the whole sample application to it.
 
@@ -284,8 +284,12 @@ Key things to note:
   * Dependency on other types (like `Operations`) copied as is
   * [[Derived Properties]] are supported. Property must be read-only and have `[<ReflectedDefinition>]`. You can use some type synonym like `type NotifyDependencyChangedAttribute = ReflectedDefinitionAttribute` we had for dynamic proxy based model. I just didn't want to drag another dependency into prototype assembly only for single type synonym.  
 
-At first glance design seems like very constraint. But I believed it's all for good. It takes functional like approach of data and code separation to extreme. 
+At first glance design seems very restrictive. But I believe it's for good. It takes functional style of data and code separation to extreme. F# records as prototypes make a good choice - it's very concise, declarative and yet constraint (no augmentations for example).
 
+There are shortcomings to this implementation which I plan to fix in future versions:
+  * Prototype assembly is not locked anymore but whenever it gets recompiled Visual Studio often shows "... FSC: error FS1135: Unexpected error creating debug information file...". It means you should reopen VS to recompile prototypes assembly.  
+  * For derived properties not full set of F# language is supported. It should be sufficient for most cases. I will provided details on exact limitations later.
+  * To support derived properties custom model base class inherit from [DependencyObject] (http://msdn.microsoft.com/en-us/library/system.windows.dependencyobject.aspx). Therefore when user press "." Intellisense shows derived from 'DependencyObject' members which is not slick experience.
 
 It's was a bumpy road from erased to generated types. It was mostly caused by lack of other real-world examples. If nothing else, this is good example of "generated types" Type Provider that can be used by other community members. 
 
