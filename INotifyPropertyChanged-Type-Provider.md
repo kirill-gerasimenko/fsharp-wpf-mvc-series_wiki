@@ -302,6 +302,6 @@ It is important milestone for the framework/series. If you'll skip [[Intro]] and
 INPC Type Provider bring small performance improvement (build time vs run-time for dynamic proxy). Notice, that different model implementation caused no changes in the rest of the framework. Model independent design payed off.
 
 ***
-At one point I was seriously thinking to build into the type provider support for C#-friendly view models. 
+At one point I was seriously thinking to build into the type provider support for C#-friendly view models. But there is no separate model definitions as declarative data structures. It's OOP with huge piles of imperative code and cost of generating new assembly based on this is prohibitive. 
 
 P.S. Dynamic proxy based model is still available but moved to separate assembly. Fill free to use it if you need to.
