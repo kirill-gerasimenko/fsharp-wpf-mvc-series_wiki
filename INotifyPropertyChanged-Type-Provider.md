@@ -290,10 +290,10 @@ There are shortcomings to this implementation which I plan to fix in future vers
   * Prototype assembly is not locked anymore but whenever it gets recompiled Visual Studio often shows "... FSC: error FS1135: Unexpected error creating debug information file...". It means you should reopen VS to recompile prototypes assembly.  
   * For derived properties not full set of F# language is supported. It should be sufficient for most cases. I will provided details on exact limitations later.
   * To support derived properties custom model base class inherit from [DependencyObject] (http://msdn.microsoft.com/en-us/library/system.windows.dependencyobject.aspx). Therefore when user press "." Intellisense shows derived from 'DependencyObject' members which is not slick experience.
+  * Units of measure are not yet supported
 
-It's was a bumpy road from erased to generated types. It was mostly caused by lack of other real-world examples. If nothing else, this is good example of "generated types" Type Provider that can be used by other community members. 
 
-FSC: error FS1135: Unexpected error creating debug information file 
+It's was a bumpy road from erased to generated types mostly caused by lack of other applications and documentation. If nothing else, this is good source-code level example of "generated types" Type Provider that can be used by other F# community members. I would like to thank personally to [@v2_matveev] (https://twitter.com/v2_matveev) from F# team . Without his assistance "generated types" version would not be possible. 
 
 ### Conclusion
 
