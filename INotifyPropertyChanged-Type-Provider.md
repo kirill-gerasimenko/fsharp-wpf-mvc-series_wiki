@@ -20,7 +20,7 @@ _...erased provided types ... are particularly useful in the following situation
 
 We'll see later in the chapter how this rule applies to design decisions.
 ***
-###Round #1 - "erased types" + ExpandoObject
+##Round #1 - "erased types" + ExpandoObject
 As a novice in type provider development, I decided to start from pilot version. I thought to try "erased types" first. Here is a test script that shows usage ([github] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/POC/TryExpando.fsx)):
 ```ocaml
 #r @"SampleModelPrototypes\bin\Debug\SampleModelPrototypes.dll"
@@ -67,7 +67,7 @@ Second assembly "ExpandoObject.dll" contains type provider itself. As you probab
 (which is one of the primary reasons to replace dynamic proxy based approach with Type Provider). 
   * Data binding to dynamic objects is sub-optimal. Look [here] (http://blogs.msdn.com/b/silverlight_sdk/archive/2011/04/26/binding-to-dynamic-properties-with-icustomtypeprovider-silverlight-5-beta.aspx) for details ("What about WPF and DLR?" section).
 
-###Round #2 - "erased types" + custom runtime base class
+##Round #2 - "erased types" + custom runtime base class
 As the next step I introduced [custom run-time class] (https://github.com/dmitry-a-morozov/fsharp-wpf-mvc-series/blob/master/Chapter%2015%20-%20INPCTypeProvider/POC/CustomRuntimeClass/Model.fs) as base for models. Here is a brief description:
   * Supports INPC and INotifyDataErrorInfo  
   * Uses F# record prototypes as backing storage 
@@ -190,10 +190,24 @@ Now it works identically to application from [[Validation]] chapter. Is that all
   3. Going forward I certainly plan to implement same [[Derived Properties]] feature as the one for dynamic proxy based models. I don't see how it can be done with "erased types".
   4. Once user refers to model prototypes assembly binary it's locked. Visual Studio has be re-opened in case prototypes assembly needs be recompiled which is certainly a sub-optimal experience.
 
-\#4 is really nasty problem. I spent quite some looking for solution (like custom remote domain + shadowing) but hit the wall. 
+\#4 is really nasty problem. I spent quite some time looking for solution (like custom remote domain + shadowing) but hit the wall. 
 
 \#1, \#2 and \#3 can be solved if I'll switch to "generated types" type provider. I'm lookinf forward to this  challenge.
 
-###Round #3 - "generated types" + (probably) custom runtime base class
+##Round #3 - "generated types" + custom runtime base class
 
-*To be continued ...*
+I'm glad to present "generated types" version of INPCTypeProvider. It's was a bit rough journey from erased to generated types. I believe it was mostly caused by lack of other real-world examples. So if nothing else, this is good example of "generated types" Type Provider that can be used by other community members. 
+
+To prove usability of the "generated types" version I ported sample application to use it.
+Model prototypes:
+```
+
+``` 
+
+FSC: error FS1135: Unexpected error creating debug information file 
+
+### Conclusion
+
+Constrained functional design
+C# version
+WinRT enabler
