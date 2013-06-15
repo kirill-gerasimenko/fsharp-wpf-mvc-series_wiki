@@ -196,7 +196,7 @@ Now it works identically to application from [[Validation]] chapter. Is that all
 
 ###Round #3 - "generated types" + custom runtime base class
 
-"Generated types" version is the one I recommend to use in real world. To prove it let's port the whole sample application to it.
+"Generated types" version is the one that can be most useful for practical application development. Let's port the whole sample application I used through the series to see usage details.
 
 Model prototypes defined in separate assembly called "ModelPrototypes":
 ```ocaml
@@ -262,7 +262,7 @@ type MainModel =
     [<ReflectedDefinition>]
     member this.Title = sprintf "%s-%O" this.ProcessName this.ActiveTab.Header
 ```
-In project that needs to use view models (usually views/controllers project; don't forget to reference model prototypes project/assembly) it looks like following
+In project that needs to use view models (usually views/controllers project) it looks like following
 ```ocaml
 open FSharp.Windows.INPCTypeProvider
 
@@ -288,17 +288,20 @@ At first glance design seems very restrictive. But I believe it's for good. It t
 
 There are shortcomings to this implementation which I plan to fix in future versions:
   * Prototype assembly is not locked anymore but whenever it gets recompiled Visual Studio often shows "... FSC: error FS1135: Unexpected error creating debug information file...". It means you should reopen VS to recompile prototypes assembly.  
-  * For derived properties not full set of F# language is supported. It should be sufficient for most cases. I will provided details on exact limitations later.
+  * For derived properties not full set of F# language is supported. It should be sufficient for most cases. I will provided details on exact limitations in later updates.
   * To support derived properties custom model base class inherit from [DependencyObject] (http://msdn.microsoft.com/en-us/library/system.windows.dependencyobject.aspx). Therefore when user press "." Intellisense shows derived from 'DependencyObject' members which is not slick experience.
   * Units of measure are not yet supported
+  * WinRT support ! 
 
-Now that we have working version 
-
-It's was a bumpy road from erased to generated types mostly caused by lack of other applications and documentation. If nothing else, this is good source-code level example of "generated types" Type Provider that can be used by other F# community members. I would like to thank personally to [@v2_matveev] (https://twitter.com/v2_matveev) from F# team . Without his assistance "generated types" version would not be possible. 
+It's was a bumpy road from erased to generated types mostly caused by lack of other samples and documentation. If nothing else, this is good source-code level example of "generated types" Type Provider that can be used by other F# community members. I would like to thank personally to [@v2_matveev] (http://twitter.com/v2_matveev) from F# team . Without his assistance "generated types" version would not be possible. 
 
 ### Conclusion
 
-Constrained functional design
+It is important milestone for the framework/series. If you'll skip [[Intro]] and initial [[Model]] chapters then chapters 3-15 each signify useful framework feature that based on some unique F# language capability (comparing to C#). 
+
+INPC Type Provider bring small performance improvement (build time vs run-time for dynamic proxy). Notice, that different model implementation caused no changes in the rest of the framework. Model independent design payed off.
+
+***
 C# version
-WinRT enabler
-Dynamic proxy based model moved to separate lib
+
+P.S. Dynamic proxy based model is still available but moved to separate assembly. Fill free to use it if you need to.
