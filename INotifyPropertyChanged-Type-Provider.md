@@ -198,16 +198,16 @@ Now it works identically to application from [[Validation]] chapter. Is that all
 
 "Generated types" version is the one I recommend to use in real world. To prove it let's port the whole sample application to it.
 
-Model prototypes defined in separate assembly:
-```
-type Operations =
-    | Add
-    | Subtract
-    | Multiply
-    | Divide
-...
-type CalculatorModel = {
-    mutable AvailableOperations : Operations[] 
+Model prototypes defined in separate assembly called "ModelPrototypes":
+```ocaml
+type Operations = 
+    | Add 
+    | Subtract 
+    | Multiply 
+    | Divide 
+
+type CalculatorModel = { 
+    mutable AvailableOperations : Operations[]  
     mutable SelectedOperation : Operations 
     mutable X : int 
     mutable Y : int 
@@ -262,6 +262,27 @@ type MainModel =
     [<ReflectedDefinition>]
     member this.Title = sprintf "%s-%O" this.ProcessName this.ActiveTab.Header
 ```
+In project that needs to use view models (usually views/controllers project; don't forget to reference model prototypes project/assembly) it looks like following
+```ocaml
+open FSharp.Windows.INPCTypeProvider
+
+type ViewModels = NotifyPropertyChanged<"ModelPrototypes">
+
+type CalculatorModel = ViewModels.CalculatorModel
+type TempConveterModel = ViewModels.TempConveterModel
+type StockInfoModel = ViewModels.StockInfoModel
+type StockPricesChartModel = ViewModels.StockPricesChartModel
+type HexConverterModel = ViewModels.HexConverterModel
+type MainModel = ViewModels.MainModel
+```
+And that's it. Magically we have exactly same functionality as provided by dynamic proxy based model.
+Key things to note:
+  * Model protypes __HAS__ to be defined in separate assembly
+  * Models certainly can have inter-dependencies (like `StockPricesChartModel` depends on `StockInfoModel` or MainModel on all other models) 
+  * F# record type signals intention to make it view model.
+  * Dependency on other types (like `Operations`) copied as is
+  * [[Derived Properties]] are supported. Property must be read-only and have `[<ReflectedDefinition>]`. You can use some type synonym like `type NotifyDependencyChangedAttribute = ReflectedDefinitionAttribute` we had for dynamic proxy based model. I just didn't want to drag another dependency into prototype assembly only for single type synonym.  
+
 
 I'm glad to present "generated types" version of INPCTypeProvider. It's was a bit rough journey from erased to generated types. It was mostly caused by lack of other real-world examples. If nothing else, this is good example of "generated types" Type Provider that can be used by other community members. 
 
