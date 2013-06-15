@@ -278,15 +278,16 @@ type MainModel = ViewModels.MainModel
 And that's it. Magically we have exactly same functionality as provided by dynamic proxy based model.
 Key things to note:
   * Model protypes __HAS__ to be defined in separate assembly
+  * Only fields defined as `mutable` participate in INPC (which makes sense if you think)   
   * Models certainly can have inter-dependencies (like `StockPricesChartModel` depends on `StockInfoModel` or MainModel on all other models) 
   * F# record type signals intention to make it view model.
   * Dependency on other types (like `Operations`) copied as is
   * [[Derived Properties]] are supported. Property must be read-only and have `[<ReflectedDefinition>]`. You can use some type synonym like `type NotifyDependencyChangedAttribute = ReflectedDefinitionAttribute` we had for dynamic proxy based model. I just didn't want to drag another dependency into prototype assembly only for single type synonym.  
 
+At first glance design seems like very constraint. But I believed it's all for good. It takes functional like approach of data and code separation to extreme. 
 
-I'm glad to present "generated types" version of INPCTypeProvider. It's was a bit rough journey from erased to generated types. It was mostly caused by lack of other real-world examples. If nothing else, this is good example of "generated types" Type Provider that can be used by other community members. 
 
-To prove usability of the "generated types" version I ported sample application to use it.
+It's was a bumpy road from erased to generated types. It was mostly caused by lack of other real-world examples. If nothing else, this is good example of "generated types" Type Provider that can be used by other community members. 
 
 FSC: error FS1135: Unexpected error creating debug information file 
 
@@ -295,3 +296,4 @@ FSC: error FS1135: Unexpected error creating debug information file
 Constrained functional design
 C# version
 WinRT enabler
+Dynamic proxy based model moved to separate lib
