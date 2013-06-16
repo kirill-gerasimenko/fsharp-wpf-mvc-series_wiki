@@ -1,4 +1,4 @@
-For long time I've been obsessed with idea to use F# "Type providers" feature to generate  INotifyPropertyChanged implementation for model. Even before question/idea was brought up on [StackOverflow] (http://stackoverflow.com/questions/13786586/f-type-providers-and-inpc-metaprogramming). Ideally the usage INPC Type Provider would be like following:
+For a long time I've been obsessed with idea to use F# "Type providers" feature to generate  INotifyPropertyChanged implementation for model. Even before question/idea was brought up on [StackOverflow] (http://stackoverflow.com/questions/13786586/f-type-providers-and-inpc-metaprogramming). Ideally the usage INPC Type Provider would be like following:
 ```ocaml
 type MyViewModel = NotifyPropertyChanged<SomeType>
 ```
@@ -196,9 +196,10 @@ Now it works identically to application from [[Validation]] chapter. Is that all
 
 ###Round #3 - "generated types" + custom runtime base class
 
-"Generated types" version is the one that can be most useful for practical application development. Let's port the whole sample application I used through the series to see usage details.
+I think "generated types" is the most useful version for practical application development. 
+Here is the sample application used through the series updated to leverage "generated types" INPC type provider.
 
-Model prototypes defined in separate assembly called "ModelPrototypes":
+Model prototypes are defined in a separate assembly called "ModelPrototypes":
 ```ocaml
 type Operations = 
     | Add 
@@ -262,7 +263,7 @@ type MainModel =
     [<ReflectedDefinition>]
     member this.Title = sprintf "%s-%O" this.ProcessName this.ActiveTab.Header
 ```
-In project that needs to use view models (usually views/controllers project) it looks like following
+In a project that needs to use view models (usually views/controllers project) it looks like the following
 ```ocaml
 open FSharp.Windows.INPCTypeProvider
 
@@ -275,33 +276,35 @@ type StockPricesChartModel = ViewModels.StockPricesChartModel
 type HexConverterModel = ViewModels.HexConverterModel
 type MainModel = ViewModels.MainModel
 ```
-And that's it. Magically we have exactly same functionality as provided by dynamic proxy based model.
+And that's it. Magically we have the same functionality as in dynamic proxy based model.
 Key things to note:
-  * Model protypes __HAS__ to be defined in separate assembly
-  * Only fields defined as `mutable` participate in INPC (which makes sense if you think)   
-  * Models certainly can have inter-dependencies (like `StockPricesChartModel` depends on `StockInfoModel` or MainModel on all other models) 
+  * Model protypes __HAVE__ to be defined in a separate assembly
+  * Only fields defined as `mutable` participate in INPC   
+  * Models can have dependencies on other models (for example `StockPricesChartModel` depends on `StockInfoModel` or MainModel on all others) 
   * F# record type signals intention to make it view model.
-  * Dependency on other types (like `Operations`) copied as is
-  * [[Derived Properties]] are supported. Property must be read-only and have `[<ReflectedDefinition>]`. You can use some type synonym like `type NotifyDependencyChangedAttribute = ReflectedDefinitionAttribute` we had for dynamic proxy based model. I just didn't want to drag another dependency into prototype assembly only for single type synonym.  
+  * Dependencies on other types (like `Operations`) are copied as is
+  * [[Derived Properties]] are supported. Property must be read-only and have `[<ReflectedDefinition>]`. You can use type synonym like `type NotifyDependencyChangedAttribute = ReflectedDefinitionAttribute` we had for dynamic proxy based model. I didn't want to drag another dependency into prototype assembly only for single type synonym.  
 
-At first glance design seems very restrictive. But I believe it's for good. It takes functional style of data and code separation to extreme. F# records as prototypes make a good choice - it's very concise, declarative and yet constraint (no augmentations for example).
+At first glance design seems very restrictive. But I believe it's advantageous because it takes functional style of data and code separation to the extreme. F# records as prototypes make a good choice - it's very concise, declarative and properly constrained (no augmentations allowed, for example).
 
-There are shortcomings to this implementation which I plan to fix in future versions:
+There are shortcomings of this implementation which I plan to fix in the future versions:
   * Prototype assembly is not locked anymore but whenever it gets recompiled Visual Studio often shows "... FSC: error FS1135: Unexpected error creating debug information file...". It means you should reopen VS to recompile prototypes assembly.  
-  * For derived properties not full set of F# language is supported. It should be sufficient for most cases. I will provided details on exact limitations in later updates.
-  * To support derived properties custom model base class inherit from [DependencyObject] (http://msdn.microsoft.com/en-us/library/system.windows.dependencyobject.aspx). Therefore when user press "." Intellisense shows derived from 'DependencyObject' members which is not slick experience.
+  * Some F# language constructs are not supported in derived property bodies. I will provided details on exact limitations in later updates.
+  * To support derived properties custom model base class inherits from [DependencyObject] (http://msdn.microsoft.com/en-us/library/system.windows.dependencyobject.aspx). Therefore when user presses "." Intellisense shows derived from 'DependencyObject' members which is not a slick experience.
   * Units of measure are not yet supported
-  * WinRT support ! 
+  * WinRT support is coming soon! 
 
-It's was a bumpy road from erased to generated types mostly caused by lack of other samples and documentation. If nothing else, this is good source-code level example of "generated types" Type Provider that can be used by other F# community members. I would like to thank personally to [@v2_matveev] (http://twitter.com/v2_matveev) from F# team . Without his assistance "generated types" version would not be possible. 
+It's was a bumpy road from erased to generated types. It was caused by the lack of other samples and documentation. I would like to thank personally to [@v2_matveev] (http://twitter.com/v2_matveev) from F# team . Without his assistance "generated types" version would not be possible. 
+
+The implementation is a useful sample of "generated types" Type Provider for F# developers. 
 
 ### Conclusion
 
-It is important milestone for the framework/series. If you'll skip [[Intro]] and initial [[Model]] chapters then chapters 3-15 each signify useful framework feature that based on some unique F# language capability (comparing to C#). 
+It is an important milestone for this framework/series. Chapters 3-15 each signify a useful feature that is based on some unique F# language capability (comparing to C#). [Chapter 2](Model), the only chapter that could have C# implementation, became obsolete.
 
-INPC Type Provider bring small performance improvement (build time vs run-time for dynamic proxy). Notice, that different model implementation caused no changes in the rest of the framework. Model independent design payed off.
+INPC Type Provider brought minor performance improvement (build time vs run-time for dynamic proxy). Different model implementation caused no changes in the rest of the framework. Model independent design payed off.
 
 ***
-At one point I was seriously thinking to build into the type provider support for C#-friendly view models. But there is no separate model definitions as declarative data structures. It's OOP with huge piles of imperative code and cost of generating new assembly based on this is prohibitive. 
+At one point I seriously considered building support for C#-friendly view models. But there are no separate model definitions as declarative data structures. OOP with huge piles of imperative code makes generating  new assembly with amended types cost prohibitive. 
 
-P.S. Dynamic proxy based model is still available but moved to separate assembly. Fill free to use it if you need to.
+P.S. Dynamic proxy based model is still available but was moved to a separate assembly.
