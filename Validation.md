@@ -149,26 +149,19 @@ Type signature inferred by compiler is:
 
 meaning this function is only suitable to work with int numbers. 
 
-Wouldn't it be nice to have the same function to work with other kind of numbers: floats, decimals, etc. to avoid code duplication? [F# language primitives](http://msdn.microsoft.com/en-us/library/ee340276.aspx) which are based on "Member constraints" are to the rescue. To make it even more reusable we split it into two functions: one is in `Extensions` module, and the other is in `Validation`. 
+Wouldn't it be nice to have the same function to work with other kind of numbers: floats, decimals, etc. to avoid code duplication? [F# language primitives](http://msdn.microsoft.com/en-us/library/ee340276.aspx) which are based on "Member constraints" are to the rescue. 
 
 ```ocaml
-open LanguagePrimitives
-...
-module Extensions = 
-    ...
-    let inline positive x = GenericGreaterThan x GenericZero 
-... 
 module FSharp.Windows.Validation
     ...
-    let inline positive expr = assertThat expr positive "Must be positive number."
-...
+    let inline positive expr = assertThat expr (fun x -> x > LanguagePrimitives.GenericZero) "Must be positive number."
 ```
 
 Let's look at the type signature again: 
 
 [[Images/GenericImplValidationPositive.png]]
 
-This function can work with any F# built-in numerics because it is based only on two constraints: `get_Zero` and `comparison`. Function `Extensions.positive` can be used in other places where generic verification for positive numbers is required: that's why we put it in a separate module. 
+This function can work with any F# built-in numerics because it is based only on two constraints: `get_Zero` and `comparison`.
 
 It's worth noting that the module is based on four language features: pattern matching, explicit member constraints, inlining and partial application. *None of them are available in C#.*
 
