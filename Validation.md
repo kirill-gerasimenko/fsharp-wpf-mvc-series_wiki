@@ -32,8 +32,6 @@ type Model() =
     member this.SetError(propertyName, message) = 
         errors.[propertyName] <- message
         this.TriggerPropertyChanged propertyName 
-    member this.ClearError propertyName = this.SetError(propertyName, null) 
-    member this.ClearAllErrors() = errors.Keys |> Seq.toArray |> Array.iter this.ClearError 
     member this.HasErrors = errors.Values |> Seq.exists (not << String.IsNullOrEmpty) 
 ```
 The following details may deserve your attention: 
