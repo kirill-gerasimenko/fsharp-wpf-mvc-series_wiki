@@ -14,7 +14,8 @@ type Model() =
         new StandardInterceptor() with
             member this.PostProceed invocation = 
                 match invocation.Method, invocation.InvocationTarget with 
-                    | PropertySetter propertyName, (:? Model as model) -> model.ClearError propertyName 
+                    | PropertySetter propertyName, (:? Model as model) -> 
+                        model.SetError(propertyName, null) 
                     | _ -> ()
     }
     
