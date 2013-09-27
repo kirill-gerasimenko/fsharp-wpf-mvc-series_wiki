@@ -53,7 +53,7 @@ type Expr with
 
 The deficiency of the current implementation is that `SetError` takes the property name as a string and therefore is not subject to compiler type checks and tooling support. The best way to address this is to use F# quotations. Introducing statically typed version of set error and some supportive types/functions below: 
 ```ocaml
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module FSharp.Windows.Validation
 ...
 open Microsoft.FSharp.Quotations
@@ -101,10 +101,8 @@ Some other useful validation functions:
 ...
 let inline clearError expr = setError expr null
     
-let inline invalidIf (SingleStepPropertySelector(propertyName, getValue : ^Model -> _)) predicate message model = 
-    if model |> getValue |> predicate 
-    then 
-        (^Model : (member SetError : string * string -> unit) (model, propertyName, message)) 
+let inline invalidIf (SingleStepPropertySelector(_, getValue) as property) predicate message model = 
+    if model |> getValue |> predicate then setError property message model
     
 let inline assertThat expr predicate = invalidIf expr (not << predicate)
     
