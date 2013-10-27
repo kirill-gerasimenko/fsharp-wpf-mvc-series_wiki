@@ -13,7 +13,7 @@ type IView<'Events, 'Model> =
     
     abstract SetBindings : 'Model -> unit
 ```
-'Mvc' changes too because of the transitive dependency: : 
+_Mvc_ type changes too because of the transitive dependency: : 
 ```ocaml
 ...
 type Mvc<'Events, 'Model when 'Model :> INotifyPropertyChanged>(model : 'Model, view : IView<'Events, 'Model>, controller : IController<'Events, 'Model>) =
