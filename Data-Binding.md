@@ -41,22 +41,21 @@ Code in `SetBindings` method will look like the following:
 ```ocaml
     override this.SetBindings model = 
         //Binding to property of type string
-        <@ this.Window.X.Text <- model.X @>.ToBindingExpr()
-        <@ this.Window.Y.Text <- model.Y @>.ToBindingExpr()
-        <@ this.Window.Result.Text <- model.Result @>.ToBindingExpr()
+        Binding.fromExpression <@ this.Window.X.Text <- model.X @>
+        Binding.fromExpression <@ this.Window.Y.Text <- model.Y @>
+        Binding.fromExpression <@ this.Window.Result.Text <- model.Result @>
         //Binding to property of type IEnumerable
-        <@ this.Window.Operation.ItemsSource <- model.AvailableOperations @>.ToBindingExpr()
+        Binding.fromExpression <@ this.Window.Operation.ItemsSource <- model.AvailableOperations @>
         //Binding to property of type obj
-        <@ this.Window.Operation.SelectedItem <- model.SelectedOperation @>.ToBindingExpr()
+        Binding.fromExpression <@ this.Window.Operation.SelectedItem <- model.SelectedOperation @>
 ```
 Sweet! This code can be verified by compiler. It means that for our property rename we'll get compiler error instead of just text warning in debug output window. 
 
-The implementation of `ToBindingExpr` extension method is given below: 
+The implementation of `Binding.fromExpression` function is given below: 
 
 ```ocaml
-[<AutoOpen>]
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-module FSharp.Windows.Data
+[<RequireQualifiedAccess>]
+module FSharp.Windows.Binding
     
 open System.Reflection
 open System.Windows
@@ -64,28 +63,25 @@ open System.Windows.Data
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Quotations.Patterns
     
-type PropertyInfo with 
-    member this.DependencyProperty : DependencyProperty = 
-        this.DeclaringType 
-            .GetField(this.Name + "Property", BindingFlags.Static ||| BindingFlags.Public ||| BindingFlags.FlattenHierarchy) 
+type PropertyInfo with
+    member this.DependencyProperty = 
+        this.DeclaringType
+            .GetField(this.Name + "Property", BindingFlags.Static ||| BindingFlags.Public)
             .GetValue(null, [||]) 
-            |> unbox    
+            |> unbox<DependencyProperty> 
     
-type Expr with 
-    member this.ToBindingExpr() = 
-        match this with
-        | PropertySet  
-            (
-                Some( FieldGet( Some( PropertyGet( Some (Value( view, _)), window, [])), control)),
-                targetProperty, 
-                [], 
-                PropertyGet( Some( Value _), sourceProperty, [])
-            ) ->
-                let target : FrameworkElement = (view, [||]) |> window.GetValue |> control.GetValue |> unbox
-                let bindingExpr = target.SetBinding(targetProperty.DependencyProperty, path = sourceProperty.Name)
-                assert not bindingExpr.HasError
-   
-        | _ -> invalidArg "expr" (string this) 
+let fromExpression = function 
+    | PropertySet
+        (
+            Some( FieldGet( Some( PropertyGet( Some (Value( view, _)), window, [])), control)),
+            targetProperty, 
+            [], 
+            PropertyGet( Some( Value _), sourceProperty, [])
+        ) ->
+            let target : FrameworkElement = (view, [||]) |> window.GetValue |> control.GetValue |> unbox
+            let bindingExpr = target.SetBinding(targetProperty.DependencyProperty, path = sourceProperty.Name)
+            assert not bindingExpr.HasError
+    | expr -> invalidArg "expr" (string expr) 
 ```
 The code is relatively straightforward by F# standards. I'd like to contrast it with hypothetical C# implemenation:
 
