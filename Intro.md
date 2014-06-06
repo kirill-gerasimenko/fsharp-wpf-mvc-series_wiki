@@ -42,4 +42,4 @@ A fair question would be why not to use ever so popular [MVVM ] (http://msdn.mic
 The goals of these series are:
  * Explain the architecture of GUI framework. 
  * Make the series a sort of language tutorial by demonstrating some advanced code techniques available in F#.
- * [Don Syme](http://blogs.msdn.com/b/dsyme/), designer and architect of the F# programming language, often positions F# as a language mostly suitable for [processing, analysis, algorithms etc.](http://skillsmatter.com/podcast/scala/practical-functional-first-programming-with-f data). I would like to show that F# can be superior to C# even when it comes to more common tasks like GUI development. 
+ * [Don Syme](http://blogs.msdn.com/b/dsyme/), designer and architect of the F# programming language, often positions F# as a language mostly suitable for [processing, analysis, algorithms etc.](http://skillsmatter.com/skillscasts/3570-practical-functional-first-programming-with-f). I would like to show that F# can be superior to C# even when it comes to more common tasks like GUI development. 
